@@ -1,0 +1,17 @@
+{
+  "name": "pendo-plugins",
+  "owner": {
+    "name": "Pendo",
+    "email": "plugins@pendo.io"
+  },
+  "metadata": {
+    "description": "Official Pendo plugins for Claude Code"
+  },
+  "plugins": [
+    {
+      "name": "pendo-analytics",
+      "source": "./",
+      "description": "Bring Pendo analytics into Claude Code with skills for account health, feature adoption, session replays, and feedback analysis"
+    }
+  ]
+}
