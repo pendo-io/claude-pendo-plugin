@@ -1,6 +1,6 @@
 # Pendo Analytics plugin
 
-Pendo analytics for Claude Code: account health, feature adoption, session replays, and feedback analysis.
+Pendo analytics for Claude Code: account health, feature adoption, session replays, feedback analysis, and agent analytics setup.
 
 ## Quickstart
 
@@ -24,6 +24,7 @@ Pendo analytics for Claude Code: account health, feature adoption, session repla
    /pendo-analytics:feature-adoption <feature-name>
    /pendo-analytics:feedback-analysis
    /pendo-analytics:session-replay
+   /setup-agent-analytics [agent-id-1] [agent-id-2] ...
    ```
 
 ### Option B: Manual Installation
@@ -47,6 +48,7 @@ Pendo analytics for Claude Code: account health, feature adoption, session repla
    /pendo-analytics:feature-adoption <feature-name>
    /pendo-analytics:feedback-analysis
    /pendo-analytics:session-replay
+   /setup-agent-analytics [agent-id-1] [agent-id-2] ...
    ```
 
 ## Components
@@ -59,6 +61,7 @@ Pendo analytics for Claude Code: account health, feature adoption, session repla
 | `feature-adoption` | Analyze feature adoption rates, identify power users vs laggards, and track adoption trends |
 | `feedback-analysis` | Deep analysis of customer feedback - discover themes, extract insights, and identify risks |
 | `session-replay` | Find and surface relevant session replays for debugging, UX research, and understanding user behavior |
+| `setup-agent-analytics` | Detect AI agents in a codebase and instrument them with Pendo `trackAgent()` calls or the server-side Conversations API |
 
 ### MCP Tools
 
