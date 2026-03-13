@@ -1,7 +1,7 @@
 {
-  "name": "pendo-analytics",
+  "name": "setup-agent-analytics",
   "version": "1.0.0",
-  "description": "Bring Pendo analytics into Claude Code with skills for account health, feature adoption, session replays, and feedback analysis",
+  "description": "Detect AI agents in your codebase and instrument them with Pendo agent analytics",
   "author": {
     "name": "Pendo",
     "email": "plugins@pendo.io"
@@ -9,8 +9,7 @@
   "homepage": "https://github.com/pendo-io/claude-pendo-plugin",
   "repository": "https://github.com/pendo-io/claude-pendo-plugin",
   "license": "MIT",
-  "keywords": ["pendo", "analytics", "customer-success", "product-management"],
-  "skills": "./skills/",
+  "keywords": ["pendo", "analytics", "ai-agents", "instrumentation"],
   "mcpServers": {
     "pendo-external": {
       "type": "http",

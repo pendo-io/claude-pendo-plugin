@@ -1,17 +1,20 @@
 {
   "name": "pendo-plugins",
+  "description": "Official Pendo plugins for Claude Code",
   "owner": {
     "name": "Pendo",
     "email": "plugins@pendo.io"
   },
-  "metadata": {
-    "description": "Official Pendo plugins for Claude Code"
-  },
   "plugins": [
     {
       "name": "pendo-analytics",
-      "source": "./",
+      "source": "./plugins/pendo-analytics/",
       "description": "Bring Pendo analytics into Claude Code with skills for account health, feature adoption, session replays, and feedback analysis"
+    },
+    {
+      "name": "setup-agent-analytics",
+      "source": "./plugins/setup-agent-analytics/",
+      "description": "Detect AI agents in your codebase and instrument them with Pendo agent analytics"
     }
   ]
 }
