@@ -36,6 +36,7 @@ This marketplace contains two plugins:
    /pendo-analytics:feedback-analysis
    /pendo-analytics:session-replay
    /pendo-analytics:data-informed-planning <planning question>
+   /pendo-analytics:replay-triage <ticket ID or replay-url>
    ```
 
    **setup-agent-analytics:**
@@ -67,6 +68,7 @@ This marketplace contains two plugins:
    /pendo-analytics:feedback-analysis
    /pendo-analytics:session-replay
    /pendo-analytics:data-informed-planning <planning question>
+   /pendo-analytics:replay-triage <ticket ID or replay-url>
    ```
 
    **setup-agent-analytics:**
@@ -85,6 +87,7 @@ This marketplace contains two plugins:
 | `feedback-analysis` | Deep analysis of customer feedback - discover themes, extract insights, and identify risks |
 | `session-replay` | Find and surface relevant session replays for debugging, UX research, and understanding user behavior |
 | `data-informed-planning` | Ground a planning task in real product data — gathers signals, issues, wiki, customer feedback, PES/NPS, segments, and session replays from Novus + Pendo, then delegates to `/superpowers:writing-plans` |
+| `replay-triage` | Triage errors from a session replay — pull devlogs, locate the bug in the codebase, propose a fix, and prompt for a PR |
 
 ### setup-agent-analytics skills
 
@@ -114,6 +117,7 @@ Run `/mcp` once after installing the plugin to authenticate each server.
 | `accountMetadataSchema` | Account metadata schema |
 | `visitorQuery` | Visitor metadata |
 | `sessionReplayList` | Find session recordings |
+| `devlogEvents` | Console errors and HTTP activity captured during a session replay |
 | `generate_feedback_topics` | Cluster feedback into themes |
 | `get_feedback_insights` | Extract key insights |
 | `get_feedback_items` | Raw feedback data |
