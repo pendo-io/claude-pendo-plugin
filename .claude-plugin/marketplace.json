@@ -9,7 +9,7 @@
     {
       "name": "pendo-analytics",
       "source": "./plugins/pendo-analytics/",
-      "description": "Bring Pendo analytics into Claude Code with skills for account health, feature adoption, session replays, and feedback analysis"
+      "description": "Bring Pendo analytics into Claude Code with skills for account health, feature adoption, session replays, feedback analysis, and data-informed planning"
     },
     {
       "name": "setup-agent-analytics",
