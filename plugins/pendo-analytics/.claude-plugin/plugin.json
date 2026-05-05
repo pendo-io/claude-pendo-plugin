@@ -1,7 +1,7 @@
 {
   "name": "pendo-analytics",
-  "version": "1.0.0",
-  "description": "Bring Pendo analytics into Claude Code with skills for account health, feature adoption, session replays, and feedback analysis",
+  "version": "1.1.0",
+  "description": "Bring Pendo analytics into Claude Code with skills for account health, feature adoption, session replays, feedback analysis, and data-informed planning",
   "author": {
     "name": "Pendo",
     "email": "plugins@pendo.io"
@@ -14,6 +14,10 @@
     "pendo-external": {
       "type": "http",
       "url": "https://app.pendo.io/mcp/v0/shttp"
+    },
+    "novus": {
+      "type": "http",
+      "url": "https://novus-api.pendo.io/mcp"
     }
   }
 }
