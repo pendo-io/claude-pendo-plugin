@@ -1,6 +1,6 @@
 {
   "name": "setup-agent-analytics",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Detect AI agents in your codebase and instrument them with Pendo agent analytics",
   "author": {
     "name": "Pendo",
@@ -9,11 +9,5 @@
   "homepage": "https://github.com/pendo-io/claude-pendo-plugin",
   "repository": "https://github.com/pendo-io/claude-pendo-plugin",
   "license": "MIT",
-  "keywords": ["pendo", "analytics", "ai-agents", "instrumentation"],
-  "mcpServers": {
-    "pendo-external": {
-      "type": "http",
-      "url": "https://app.pendo.io/mcp/v0/shttp"
-    }
-  }
+  "keywords": ["pendo", "analytics", "ai-agents", "instrumentation"]
 }
