@@ -4,12 +4,13 @@ Pendo analytics for Claude Code: account health, feature adoption, session repla
 
 ## Plugins
 
-This marketplace contains two plugins:
+This marketplace contains three plugins:
 
 | Plugin | Description |
 |:-------|:------------|
 | `pendo-analytics` | Pendo analytics skills for account health, feature adoption, session replays, feedback analysis, and data-informed planning |
 | `setup-agent-analytics` | Detect AI agents in your codebase and instrument them with Pendo agent analytics |
+| `pendo-guides` | Create production-ready Pendo in-app guides (walkthroughs, announcements, alerts, polls, promotions) as HTML/CSS/JS from a short intake conversation |
 
 ## Quickstart
 
@@ -44,6 +45,11 @@ This marketplace contains two plugins:
    /setup-agent-analytics:setup-agent-analytics [agent-id-1] [agent-id-2] ...
    ```
 
+   **pendo-guides:**
+   ```
+   /pendo-guides:pendo-guide-creator
+   ```
+
 ### Option B: Manual Installation
 
 1. **Clone the repo:**
@@ -76,6 +82,11 @@ This marketplace contains two plugins:
    /setup-agent-analytics:setup-agent-analytics [agent-id-1] [agent-id-2] ...
    ```
 
+   **pendo-guides:**
+   ```
+   /pendo-guides:pendo-guide-creator
+   ```
+
 ## Components
 
 ### pendo-analytics skills
@@ -94,6 +105,12 @@ This marketplace contains two plugins:
 | Skill | Description |
 |:------|:------------|
 | `setup-agent-analytics` | Detect AI agents in a codebase and instrument them with Pendo `trackAgent()` calls or the server-side Conversations API |
+
+### pendo-guides skills
+
+| Skill | Description |
+|:------|:------------|
+| `pendo-guide-creator` | Runs a short intake conversation, then generates production-ready Pendo in-app guides (walkthroughs, announcements, alerts, polls, promotions) as standalone HTML/CSS/JS files with wired button actions and `<pendo-poll>` data collection |
 
 ### MCP Servers
 
