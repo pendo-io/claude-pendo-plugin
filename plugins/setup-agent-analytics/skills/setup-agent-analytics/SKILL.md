@@ -153,7 +153,7 @@ Both client-side and server-side share the same event types and core metadata fi
 | agentId | string | Yes | Unique identifier for the AI agent |
 | conversationId | string | Yes | Session/conversation identifier |
 | messageId | string | Yes | Unique message identifier |
-| content | string | Yes | Message content or reaction type (**max 500 chars — truncate if longer**) |
+| content | string | Yes | Message content or reaction type. **Send the full text — do not truncate client-side.** The `/data/agentic` endpoint accepts full content |
 **Optional metadata (both methods):**
 | Property | Type | Required | Description |
 |----------|------|----------|-------------|
@@ -174,7 +174,7 @@ Both client-side and server-side share the same event types and core metadata fi
 ## Client-Side Instrumentation
 **Use this path when the instrumentation method is client-side (web apps).**
 ### Client-Side Helper Function
-Add this helper to the project to handle null-safety, content truncation, and error isolation. Place it in a shared utilities file (e.g., `src/utils/pendo.ts` or `src/lib/pendo.ts`):
+Add this helper to the project to handle null-safety and error isolation. Place it in a shared utilities file (e.g., `src/utils/pendo.ts` or `src/lib/pendo.ts`):
 ```typescript
 // --- Pendo Agent Analytics Helper (Client-Side) ---
 declare global {
@@ -184,7 +184,6 @@ declare global {
     };
   }
 }
-const CONTENT_MAX_LENGTH = 500;
 export function trackAgentEvent(
   eventType: "prompt" | "agent_response" | "user_reaction",
   metadata: {
@@ -200,13 +199,7 @@ export function trackAgentEvent(
 ): void {
   try {
     if (typeof window === "undefined" || !window.pendo?.trackAgent) return;
-    window.pendo.trackAgent(eventType, {
-      ...metadata,
-      content:
-        metadata.content.length > CONTENT_MAX_LENGTH
-          ? metadata.content.slice(0, CONTENT_MAX_LENGTH)
-          : metadata.content,
-    });
+    window.pendo.trackAgent(eventType, { ...metadata });
   } catch {
     // Analytics failure must never break the product
   }
@@ -215,7 +208,7 @@ export function trackAgentEvent(
 This helper:
 - Guards against `window.pendo` not being loaded (async snippet) or absent (SSR)
 - Handles SSR environments (`typeof window === "undefined"`)
-- Truncates `content` to 500 characters to avoid payload bloat
+- Sends the full `content`
 - Catches errors silently so analytics never breaks the product
 - Provides TypeScript types without requiring a separate `global.d.ts`
 **Import this helper** in every file you instrument instead of calling `window.pendo.trackAgent` directly.
@@ -244,7 +237,6 @@ Add this helper to a shared backend utilities file (e.g., `src/utils/pendo.ts`, 
 **TypeScript/JavaScript (Node.js, React Native backend, etc.):**
 ```typescript
 // --- Pendo Agent Analytics Helper (Server-Side) ---
-const CONTENT_MAX_LENGTH = 500;
 const PENDO_ENDPOINT = process.env.PENDO_DATA_ENDPOINT || "https://data.pendo.io/data/agentic";
 const PENDO_SHARED_SECRET = process.env.PENDO_SHARED_SECRET || "";
 interface TrackAgentEventOptions {
@@ -279,10 +271,7 @@ export async function trackAgentEvent(
         agentId: metadata.agentId,
         conversationId: metadata.conversationId,
         messageId: metadata.messageId,
-        content:
-          metadata.content.length > CONTENT_MAX_LENGTH
-            ? metadata.content.slice(0, CONTENT_MAX_LENGTH)
-            : metadata.content,
+        content: metadata.content,
         ...(metadata.modelUsed && { modelUsed: metadata.modelUsed }),
         ...(metadata.suggestedPrompt !== undefined && { suggestedPrompt: metadata.suggestedPrompt }),
         ...(metadata.toolsUsed && { toolsUsed: metadata.toolsUsed }),
@@ -310,7 +299,6 @@ import os
 import time
 import requests
 from typing import Optional
-CONTENT_MAX_LENGTH = 500
 PENDO_ENDPOINT = os.getenv("PENDO_DATA_ENDPOINT", "https://data.pendo.io/data/agentic")
 PENDO_SHARED_SECRET = os.getenv("PENDO_SHARED_SECRET", "")
 def track_agent_event(
@@ -335,7 +323,7 @@ def track_agent_event(
             "agentId": agent_id,
             "conversationId": conversation_id,
             "messageId": message_id,
-            "content": content[:CONTENT_MAX_LENGTH],
+            "content": content,
         }
         if model_used is not None:
             props["modelUsed"] = model_used
@@ -368,13 +356,13 @@ def track_agent_event(
         # Analytics failure must never break the product
         pass
 ```
-**For other languages** (Swift, Kotlin, Dart, Go, etc.), adapt the same pattern: fire-and-forget HTTP POST with error isolation, content truncation, and the same JSON body structure.
+**For other languages** (Swift, Kotlin, Dart, Go, etc.), adapt the same pattern: fire-and-forget HTTP POST with error isolation, full content, and the same JSON body structure.
 The server-side helper:
 - Reads endpoint and shared secret from environment/config
 - Sends a `POST` to the regional `/data/agentic` endpoint with the correct headers
 - Builds the JSON payload with top-level `type`, `visitor_id`, `timestamp`, and nested `props`
 - Only includes optional fields when they have a value (no `null` or `undefined` in the payload)
-- Truncates `content` to 500 characters
+- Sends the full `content`
 - Catches errors silently so analytics never breaks the product
 - Is fire-and-forget — does not await the response in the critical path (if the language/framework supports background tasks, use them)
 **Import this helper** in every file you instrument instead of constructing the HTTP request directly.
