@@ -286,16 +286,9 @@ For a 3-step walkthrough, produce 3 files: `step-1.html`, `step-2.html`, `step-3
 - The `<style>` tag must use `id="pendo-inline-css"` and `type="text/css"`.
 - Do NOT wrap in `<!DOCTYPE html>`, `<html>`, `<head>`, or `<body>` tags — Pendo injects the content into its own container.
 
-### Converting to production
-When ready to deploy into Pendo's code block editor, replace everything between
-`/*BEGIN PENDO PREVIEW STUBS*/` and `/*END PENDO PREVIEW STUBS*/` with the EJS template header:
-```js
-<% if (typeof guide !== 'undefined') { %>
-var guide = pendo.findGuideById('<%= guide.id %>');
-var step = guide && guide.findStepById('<%= step.id %>');
-<% } %>
-```
-The component registration block and the JavaScript IIFE stay as-is.
+### EJS template tags
+**NEVER add EJS template tags** (`<% %>`, `<%= %>`) to generated output. This includes the
+`guide.id`/`step.id` variable resolution block.
 
 ### Walkthrough-specific output rules
 - Each step is its own file — do NOT put multiple steps in a single file.
