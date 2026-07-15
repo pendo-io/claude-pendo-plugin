@@ -282,15 +282,7 @@ A generated code block using these components follows this layout:
 </script>
 ```
 
-### Converting to production
+### EJS template tags
 
-Replace `/*BEGIN PENDO PREVIEW STUBS*/` through `/*END PENDO PREVIEW STUBS*/` with:
-
-```javascript
-<% if (typeof guide !== 'undefined') { %>
-var guide = pendo.findGuideById('<%= guide.id %>');
-var step = guide && guide.findStepById('<%= step.id %>');
-<% } %>
-```
-
-The component registration block and the JavaScript IIFE remain unchanged.
+**NEVER add EJS template tags** (`<% %>`, `<%= %>`) to generated output. This includes the
+`guide.id`/`step.id` variable resolution block.
