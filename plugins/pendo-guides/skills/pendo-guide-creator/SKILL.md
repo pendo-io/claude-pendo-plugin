@@ -61,19 +61,59 @@ Ask these together in a single message. Frame them as optional — the user can 
    Writing style, tone of voice, terminology rules, words to avoid.
    *(Skip if you don't have these — we'll use sensible defaults.)*
 
-5. **Organization styles / theme** — Any brand or visual guidelines?
-   CSS stylesheet, hex colors, font preferences, or Pendo theme name.
+5. **Organization styles / theme** — How would you like to style this guide?
+   Present these options to the user (use `AskQuestion` or a clear list):
+   - **Upload an image** — screenshot, mockup, or brand asset to match visually
+   - **Provide a CSS stylesheet** — paste or reference a CSS file with styles to apply
+   - **Provide hex colors / font preferences** — specific values (e.g. `#F47C3C`, "Inter")
+   - **Provide a Pendo theme name** — name of a theme configured in their Pendo account
+   - **Select from available Pendo themes** — browse the list from their subscription
    *(Skip if not available — we'll use neutral defaults.)*
 
 6. **Examples or inspiration** — Screenshots of existing guides or guides from other products
    that capture the look or tone they're going for. Upload images directly if available.
    *(Skip if nothing comes to mind.)*
 
-After the user responds to Round 2 (or skips it), proceed to Step 2.
+After the user responds to Round 2 (or skips it), resolve their theme choice before proceeding to Step 2.
 
 ---
 
-Once Round 2 is complete (or skipped), proceed to Step 2. Do not generate the guide before this point.
+### Theme Resolution (agent instructions — not shown to user)
+
+When the user provides a theme preference in question 5, resolve it as follows:
+
+| User choice | Agent action |
+|---|---|
+| Image | Accept the uploaded image. Extract visual cues (colors, spacing, typography, layout) and replicate them in the guide CSS. |
+| CSS stylesheet | Read the file or pasted content. Extract relevant properties (colors, fonts, spacing, border-radius) and apply to guide output. |
+| Hex colors / font preferences | Apply the provided values directly to the guide's `<style>` block. |
+| Pendo theme name | Call `listThemes` on the `user-pendo` MCP server with `search: "<name>"` and the user's `subId`. Extract the `buildingBlocks` object and map its properties to guide CSS (font family, colors, button styles, border-radius, padding). |
+| Select from list | Call `listThemes` (no `search` param) to retrieve all available themes. Present the theme names to the user for selection, then resolve as "Pendo theme name" above. |
+
+**MCP server availability:** Before attempting any Pendo theme lookup, check whether the
+`user-pendo` MCP server is available by calling `GetMcpTools` with `server: "user-pendo"`.
+If the server's `serverStatus` is not `"ready"` (e.g. it is missing, in `"error"`, or
+`"needsAuth"` state), do NOT silently fall back to a different approach. Instead, inform the
+user that the Pendo MCP server is not configured or not connected, and ask if they'd like to:
+- Set up the Pendo MCP server by following the steps at
+  https://support.pendo.io/hc/en-us/articles/41102236924955-Connect-to-the-Pendo-MCP-server
+- Provide the theme details another way (image, CSS, hex colors, etc.)
+
+If the server requires authentication (`"needsAuth"`), call `mcp_auth` for the server and retry.
+
+**Subscription ID resolution:** If the Pendo MCP server is available and a theme lookup is needed,
+ask the user which subscription the theme lives in. If they know the subscription name or ID, use
+it directly. If they don't know, call `list_all_applications` on the `user-pendo` MCP server to
+retrieve all subscriptions they have access to, then search each subscription for the theme until
+a match is found.
+
+Always check the Pendo MCP server for themes before falling back to local filesystem searches —
+when building a Pendo guide, "my theme" most likely refers to a Pendo-configured theme.
+
+---
+
+Once Round 2 is complete (or skipped) and any theme has been resolved, proceed to Step 2.
+Do not generate the guide before this point.
 
 ---
 
@@ -104,11 +144,17 @@ Read `references/html-generation.md` before generating any output. That referenc
 rules (copy guidelines, button text rules, length limits, tone), button action wiring instructions
 (supported actions, mappings, event binding rules), and output file generation specifications (file
 structure, script wrapper, preview stubs, walkthrough examples, styling defaults, and rich guide rules).
+Every interactive element must get a tracked `id` (`pendo-button-*` / `pendo-close-guide-*`) and a matching
+`data-pendo-action` attribute so guide metrics show its Action even before it is clicked.
 
 For guides that collect user input (polls, ratings, free text), also read `references/pendo-components.md`.
-Use the headless `<pendo-poll>` and `<pendo-actions>` components to handle data collection and action
-dispatch. The component registration block from `components/register.min.js` must be inlined in every
-generated code block.
+Use the headless `<pendo-poll>` custom element for data collection and the inline `actions` factory for
+guide navigation. Each action reports a `guideActivity` analytics event via `step.trackAction(...)` before
+performing its behavior — always through the guarded `track()` helper (`if (!step.trackAction) return;`), so
+guides still run on older pendo-client versions where the method does not exist (analytics is skipped, the
+behavior still fires). Never call `step.trackAction` directly or unguarded. See the Analytics notes in the
+references. The `<pendo-poll>` registration block
+from `components/register.min.js` must be inlined in every generated code block.
 
 Follow every instruction in those references when producing the HTML output files.
 
@@ -167,6 +213,45 @@ the loop until the user is satisfied. Never treat the first output as final.
 
 ---
 
+## Step 5 — Offer to Send the Guide to Pendo
+
+After a guide has been created (and after each revision), offer to push it into Pendo as a draft guide.
+Whether you can do this depends on the `user-pendo` MCP server being connected.
+
+**First, check MCP server connectivity.** Call `GetMcpTools` with `server: "user-pendo"` and inspect
+`serverStatus`.
+
+### If the server is connected (`serverStatus: "ready"`)
+
+Let the user know the guide can be sent to Pendo directly. Phrase it as an invitation, e.g.:
+
+> "If this guide looks good, I can send it to Pendo for you as a draft — just say the word."
+
+If the user confirms, create the draft guide with `createGuideFromHtml` on the `user-pendo` MCP server:
+- Pass each step's full HTML as an entry in the `rawHtmls` array (one entry per step, in order).
+- Resolve `subId` and `appId` first — reuse the subscription already identified during theme resolution
+  if available. Otherwise ask which subscription and web application the guide should be created in,
+  calling `list_all_applications` to help the user pick. Only standard web apps are supported (not mobile
+  or extension apps).
+- Offer a sensible `guideName` based on the guide's purpose, and use `layoutType: "overlay"` for
+  modal/lightbox guides or `"embedded"` for inline guides.
+- After creation, share the returned guide URL so the user can open and finish it in Pendo.
+
+If the server requires authentication (`"needsAuth"`), call `mcp_auth` for the server and retry.
+
+### If the server is not connected (not `"ready"`)
+
+Do not attempt to send the guide. Instead, let the user know that connecting the Pendo MCP server would
+let you send the guide to Pendo for them, e.g.:
+
+> "Your guide is ready to use. If you connect the Pendo MCP server, I can send guides like this straight
+> to Pendo as a draft for you — no copy/paste required. Here's how to set it up: [link]"
+
+Point them to the setup steps at
+https://support.pendo.io/hc/en-us/articles/41102236924955-Connect-to-the-Pendo-MCP-server
+
+---
+
 ## Reference Files
 
 - `references/guide-types.md` — Full guide type definitions, use cases, structural rules, and copy length guidelines.
@@ -175,8 +260,9 @@ the loop until the user is satisfied. Never treat the first output as final.
 - `references/html-generation.md` — All writing rules, button action wiring, and output file generation specs.
   Read this when: generating HTML output, wiring button actions, or applying copy/style/tone rules.
 
-- `references/pendo-components.md` — Headless component API reference for `<pendo-poll>` and `<pendo-actions>`.
-  Read this when: generating poll/survey guides, wiring data collection, or understanding the component architecture.
+- `references/pendo-components.md` — API reference for the `<pendo-poll>` element and the inline `actions` factory
+  (including `step.trackAction` analytics). Read this when: generating poll/survey guides, wiring data collection or
+  button actions, or understanding the component architecture.
 
 - `components/register.min.js` — Minified component registration IIFE to inline in generated code blocks.
   Copy this verbatim into the `/*BEGIN COMPONENT REGISTRATION*/` block of every generated guide.

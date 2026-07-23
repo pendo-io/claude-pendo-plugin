@@ -2,7 +2,7 @@
  * <pendo-poll> — Headless custom element for poll data storage.
  *
  * Declares a single poll field and stores its value. Renders nothing.
- * Used by <pendo-actions> to collect and submit poll responses.
+ * Used by the inline `actions` factory to collect and submit poll responses.
  *
  * Attributes:
  *   poll-id (required) — format: cb-{Type}-{shortRandom}

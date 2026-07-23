@@ -24,12 +24,13 @@ Apply these writing rules universally:
 
 - **Primary buttons**: Action-oriented — "Get Started", "Try Now", "Learn More", "Continue", "Next", "Finish", "Done"
 - **Secondary buttons**: Passive — "Skip", "Later", "Cancel", "Not Now", "Back"
-- **Walkthrough middle steps**: Primary = "Next" or "Continue" → `step.advance()`, Secondary = "Back" → `pendo.onGuidePrevious()`
-- **Walkthrough finish step**: Primary = "Finish" or "Done" → `step.advance()`, no secondary button
-- **Dismissal buttons**: "Dismiss", "Close", "X", "No thanks" → `step.dismiss()`
-- **Snooze buttons**: "Skip", "Later", "Not now", "Remind me later" → `pendo.onGuideSnoozed(null, null, 86400000)`
-- **Poll submit**: "Submit", "Send feedback" → `step.response(responses); step.advance()`
-- **Link buttons**: "Learn more", "View docs", "Try it" (with URL) → `step.eventRouter.eventable.trigger('pendoEvent', { action: 'openLink', step: step, params: [{ name: 'url', value: url }, { name: 'target', value: '_blank' }] })`
+- **Walkthrough middle steps**: Primary = "Next" or "Continue" → `actions.advance(this)`, Secondary = "Back" → `actions.previous(this)`
+- **Walkthrough finish step**: Primary = "Finish" or "Done" → `actions.advance(this)`, no secondary button
+- **Dismissal buttons**: "Dismiss", "Close", "No thanks", "Cancel" → `actions.dismiss(this)`
+- **Corner X close control**: the top-right × → `actions.dismiss(this)` (see Element IDs below)
+- **Snooze buttons**: "Skip", "Later", "Not now", "Remind me later" → `actions.snooze(this, 86400000)`
+- **Poll submit**: "Submit", "Send feedback" → `actions.submit(this)`
+- **Link buttons**: "Learn more", "View docs", "Try it" (with URL) → `actions.openLink(this, url, '_blank')`
 - **Never use**: "Click here", "OK" (unless it's a system-level alert)
 
 ---
@@ -62,48 +63,106 @@ See `references/pendo-components.md` for full API.
 
 ### Supported Actions
 
+Each action takes the clicked element itself as its first argument (`this` from the click handler),
+so the factory can derive the `elementId` and `elementType` it passes to `step.trackAction`.
+
 | Action | Method | When to use |
 |--------|--------|-------------|
-| Advance guide | `actions.advance()` | Primary button that moves to the next step ("Next", "Continue", "Got it", "Get Started") |
-| Previous step | `actions.previous()` | Secondary button that goes back one step ("Back", "Previous") |
-| Dismiss guide | `actions.dismiss()` | Button that closes the guide entirely ("Dismiss", "Close", "X", "No thanks", "Cancel") |
-| Snooze guide | `actions.snooze(86400000)` | Button that hides the guide temporarily — default 1 day / 86400000ms ("Remind me later", "Not now", "Later", "Skip") |
-| Submit poll + advance | `actions.submitPolls(); actions.advance()` | Button that submits poll/survey responses then advances ("Submit", "Send feedback") |
-| URL link | `actions.openLink(url, '_blank')` | Button or link that opens a URL in a new tab ("Learn more", "View docs", "Try it") |
+| Advance guide | `actions.advance(this)` | Primary button that moves to the next step ("Next", "Continue", "Got it", "Get Started") |
+| Previous step | `actions.previous(this)` | Secondary button that goes back one step ("Back", "Previous") |
+| Dismiss guide | `actions.dismiss(this)` | Any control that closes the guide — the corner X, "Dismiss", "Close", "No thanks", "Cancel" |
+| Snooze guide | `actions.snooze(this, 86400000)` | Button that hides the guide temporarily — default 1 day / 86400000ms ("Remind me later", "Not now", "Later", "Skip") |
+| Submit poll + advance | `actions.submit(this)` | Button that submits poll/survey responses then advances ("Submit", "Send feedback") — one event |
+| URL link | `actions.openLink(this, url, '_blank')` | Button or link that opens a URL in a new tab ("Learn more", "View docs", "Try it") |
 
 ### Button Text to Action Mapping
 
 Apply these mappings when wiring button click handlers:
 
 **Primary buttons (advance the guide forward):**
-- "Next", "Continue", "Got it", "Get Started" → `actions.advance()`
-- "Finish", "Done" (last step) → `actions.advance()` (advances past the final step, closing the guide)
-- "Submit", "Send" (poll context) → `actions.submitPolls(); actions.advance()`
+- "Next", "Continue", "Got it", "Get Started" → `actions.advance(this)`
+- "Finish", "Done" (last step) → `actions.advance(this)` (advances past the final step, closing the guide)
+- "Submit", "Send" (poll context) → `actions.submit(this)`
 
 **Secondary buttons (passive/escape actions):**
-- "Back", "Previous" → `actions.previous()`
-- "Skip", "Later", "Not now", "Remind me later" → `actions.snooze(86400000)`
-- "Dismiss", "Close", "Cancel", "No thanks" → `actions.dismiss()`
+- "Back", "Previous" → `actions.previous(this)`
+- "Skip", "Later", "Not now", "Remind me later" → `actions.snooze(this, 86400000)`
+- "Dismiss", "Close", "Cancel", "No thanks", corner X → `actions.dismiss(this)`
 
 **Link-style buttons:**
-- Any button whose purpose is to open a URL → `actions.openLink('https://...', '_blank')`
-- If the guide should also close after opening the link, follow with `actions.dismiss()`
+- Any button whose purpose is to open a URL → `actions.openLink(this, 'https://...', '_blank')`
+- If the guide should also close after opening the link, follow with `actions.dismiss(this)`
+
+### Element IDs
+
+Give every interactive element a stable `id`. The id feeds `uiElementId` in analytics and drives how
+guide metrics classify the element:
+
+- **Corner X close control** (the × in the top-right that dismisses the guide): use
+  `id="pendo-close-guide-<hash>"` and set its visible text to `×`. This is what makes guide metrics
+  label it a **"Close Button"** (both the element-type classification and the display name depend on it).
+  Only the corner X gets this id — a "No thanks"/"Cancel" button that also dismisses is a regular button.
+- **All other buttons and links**: use `id="pendo-button-<hash>"`, matching Pendo's native convention.
+- `<hash>` is an 8-character random hex string (same style as poll ids), unique within the step.
+
+### Element action metadata (`data-pendo-action`)
+
+Also stamp each interactive element with a `data-pendo-action` attribute — a JSON array of the same
+guideActivity action(s) the element reports through `step.trackAction`. `trackAction` only fires on click,
+so guide metrics can't show an element's Action until it has at least one recorded click. The
+`data-pendo-action` attribute lets metrics read the intended action straight from the stored HTML, so
+every element shows its correct Action even with zero clicks.
+
+Use the guideActivity action name(s) — the same values the `actions` methods pass to `track` — and wrap
+the attribute in single quotes so the inner JSON can use double quotes:
+
+| Action method            | `data-pendo-action`            |
+|--------------------------|--------------------------------|
+| `actions.advance(this)`  | `[{"action":"advanceGuide"}]`  |
+| `actions.previous(this)` | `[{"action":"previousStep"}]`  |
+| `actions.dismiss(this)`  | `[{"action":"dismissGuide"}]`  |
+| `actions.snooze(this)`   | `[{"action":"guideSnoozed"}]`  |
+| `actions.submit(this)`   | `[{"action":"submitPoll"}]`    |
+| `actions.openLink(...)`  | `[{"action":"openLink"}]`      |
+
+Keep `data-pendo-action` in sync with the handler — a button whose click calls `actions.advance(this)`
+carries `data-pendo-action='[{"action":"advanceGuide"}]'`. For submit buttons list only `submitPoll`;
+guide metrics expands it to "Submit Poll & Next Step".
 
 ### Rules
 
 - Every button MUST have an action. No button should be purely decorative.
+- Every interactive element MUST have a tracked `id` and a matching `data-pendo-action` attribute (see
+  "Element IDs" and "Element action metadata" above), so it appears in guide metrics with the right Action.
 - Use `addEventListener('click', ...)` for binding — never inline `onclick` attributes (CSP compatibility).
-- For poll guides, use `<pendo-poll>` elements to declare and store responses, then call `actions.submitPolls()`
-  to send all values to Pendo. See the Poll Data section below.
+- Pass the clicked element (`this`) into the action — never `this.id`. The factory reads the id, tag,
+  and text off the element and reports a `guideActivity` event before performing the behavior (see Analytics).
+- For poll guides, use `<pendo-poll>` elements to declare and store responses, then call `actions.submit()`
+  to send all values to Pendo and advance in one step. See the Poll Data section below.
 - The snooze duration (86400000ms = 1 day) is the default. Adjust if the user specifies a different interval.
+
+### Analytics (guideActivity)
+
+Code-block guide clicks do not automatically produce `guideActivity` analytics, because the injected
+HTML buttons are not part of the guide's `domJson` tree. The `actions` factory closes this gap by calling
+`step.trackAction(...)` — a public method on the step — before running each behavior. From the passed
+element it stages a `guideActivity` event with `uiElementId` (the element id), `uiElementType` (the tag,
+e.g. `BUTTON`/`A`), and the action(s) performed. No visible text is captured; guide metrics displays
+deleted code-block elements by their element id.
+
+- `step.trackAction` is guarded (`if (step.trackAction)`) so guides still work on older agents that lack it.
+- The behavior call (`step.advance()`, `step.dismiss()`, etc.) is unchanged; `trackAction` only adds analytics.
+- `actions.submit` fires a single event with one `submitPoll` action — guide metrics expands that into
+  "Submit Poll & Next Step", so do NOT also emit a separate advance event for the same click.
+- Do not fire analytics yourself elsewhere — the factory is the single place that calls `trackAction`.
 
 ---
 
 ## Poll Data (Headless Components)
 
 When a guide collects user input (ratings, free text, multiple choice), use `<pendo-poll>` elements
-to declare each data field. The `actions.submitPolls()` method in the script wrapper handles
-collecting all values and calling `step.response()`.
+to declare each data field. The `actions.submit()` method in the script wrapper handles collecting all
+values, calling `step.response()`, reporting a single `submitPoll` `guideActivity` event, and advancing.
 
 ### Poll ID Format
 
@@ -151,17 +210,18 @@ document.getElementById('feedback-input').addEventListener('input', function(e) 
   document.querySelector('[poll-id="cb-FreeForm-b8c93d12"]').setValue(e.target.value);
 });
 
-// Submit all polls + advance
-document.getElementById('submit-btn').addEventListener('click', function() {
-  actions.submitPolls();
-  actions.advance();
+// Submit all polls + advance (single guideActivity event; the metrics UI expands
+// submitPoll into "Submit Poll & Next Step")
+// Markup: <button id="pendo-button-4d5e6f7a" data-pendo-action='[{"action":"submitPoll"}]'>Submit</button>
+document.getElementById('pendo-button-4d5e6f7a').addEventListener('click', function() {
+  actions.submit(this);
 });
 ```
 
 ### Deployment requirement
 
 Generated poll IDs MUST be registered in the step's `pollIds` array in the guide configuration.
-Without this, `step.response()` will not exist and `submitPolls()` will not send data.
+Without this, `step.response()` will not exist and `actions.submit()` will not send data.
 
 Include a comment at the top of generated poll guides listing the required poll IDs:
 
@@ -183,15 +243,20 @@ For a 3-step walkthrough, produce 3 files: `step-1.html`, `step-2.html`, `step-3
 ```html
 <style id="pendo-inline-css" type="text/css">
   /* CSS for this step */
+  .guide-container { position: relative; }
+  .guide-close { position: absolute; top: 8px; right: 8px; width: 24px; height: 24px; border: none; background: transparent; font-size: 18px; line-height: 1; cursor: pointer; color: #555; }
 </style>
 
 <!-- HTML content for this step only -->
 <div class="guide-container">
+  <!-- Top-right X close control. Use a pendo-close-guide-<hash> id and × text so it
+       is classified as "Close Button" in guide metrics. Omit for guides with no corner X. -->
+  <button class="guide-close" id="pendo-close-guide-1a2b3c4d" aria-label="Close" data-pendo-action='[{"action":"dismissGuide"}]'>×</button>
   <h2>Step heading</h2>
   <p>Step body copy.</p>
   <div class="guide-buttons">
-    <button id="secondary-btn">Back</button>
-    <button id="primary-btn">Next</button>
+    <button id="pendo-button-2b3c4d5e" data-pendo-action='[{"action":"previousStep"}]'>Back</button>
+    <button id="pendo-button-3c4d5e6f" data-pendo-action='[{"action":"advanceGuide"}]'>Next</button>
   </div>
 </div>
 
@@ -240,31 +305,47 @@ For a 3-step walkthrough, produce 3 files: `step-1.html`, `step-2.html`, `step-3
 (function(step, guide, pendo) {
   var polls = document.querySelectorAll('pendo-poll');
 
+  // Reports a guideActivity analytics event for `el`, deriving id/type/text from
+  // the DOM element, then the caller performs the behavior. `el` is the clicked
+  // element (pass `this` from the handler). Guarded so guides still work on older
+  // agents (and in local preview) that lack step.trackAction.
+  function track(el, acts) {
+    if (!step.trackAction || !el) return;
+    step.trackAction({ elementId: el.id, elementType: el.tagName, actions: acts });
+  }
+
   var actions = {
-    submitPolls: function() {
+    submit: function(el) {
       var responses = [];
       polls.forEach(function(p) {
         if (p.hasValue()) responses.push({ pollId: p.pollId, value: p.getSerializedValue() });
       });
       if (responses.length) step.response(responses);
+      track(el, [{ action: 'submitPoll' }]);
+      step.advance();
     },
-    advance: function() { step.advance(); },
-    previous: function() { pendo.onGuidePrevious(); },
-    dismiss: function() { step.dismiss(); },
-    snooze: function(d) { pendo.onGuideSnoozed(guide.id, step.id, d || 86400000); },
-    openLink: function(url, target) {
+    advance: function(el) { track(el, [{ action: 'advanceGuide' }]); step.advance(); },
+    previous: function(el) { track(el, [{ action: 'previousStep' }]); pendo.onGuidePrevious(); },
+    dismiss: function(el) { track(el, [{ action: 'dismissGuide' }]); step.dismiss(); },
+    snooze: function(el, d) { d = d || 86400000; track(el, [{ action: 'guideSnoozed', duration: d, timeUnit: 'ms' }]); pendo.onGuideSnoozed(guide.id, step.id, d); },
+    openLink: function(el, url, target) {
+      target = target || '_blank';
+      track(el, [{ action: 'openLink', url: url, target: target }]);
       step.eventRouter.eventable.trigger('pendoEvent', {
         action: 'openLink', step: step,
-        params: [{ name: 'url', value: url }, { name: 'target', value: target || '_blank' }]
+        params: [{ name: 'url', value: url }, { name: 'target', value: target }]
       });
     }
   };
 
-  document.getElementById('secondary-btn').addEventListener('click', function() {
-    actions.previous();
+  document.getElementById('pendo-close-guide-1a2b3c4d').addEventListener('click', function() {
+    actions.dismiss(this);
   });
-  document.getElementById('primary-btn').addEventListener('click', function() {
-    actions.advance();
+  document.getElementById('pendo-button-2b3c4d5e').addEventListener('click', function() {
+    actions.previous(this);
+  });
+  document.getElementById('pendo-button-3c4d5e6f').addEventListener('click', function() {
+    actions.advance(this);
   });
 })(step, guide, pendo);
 </script>
@@ -281,7 +362,10 @@ For a 3-step walkthrough, produce 3 files: `step-1.html`, `step-2.html`, `step-3
   variable scoping. Do NOT emit `/*BEGIN PENDO SCRIPT WRAPPER*/` or `/*END PENDO SCRIPT WRAPPER*/` markers — Pendo
   adds these automatically when it processes the content; emitting them here causes double-wrapping.
 - The `actions` factory object MUST be created at the top of the wrapper IIFE (see template above). It provides
-  `submitPolls`, `advance`, `previous`, `dismiss`, `snooze`, and `openLink`. Use these for all button actions.
+  `submit`, `advance`, `previous`, `dismiss`, `snooze`, and `openLink`. Use these for all button actions.
+  Each action takes the clicked element (`this`) as its first argument and reports a `guideActivity`
+  event via `step.trackAction(...)` before performing the behavior. The call is guarded (`if (step.trackAction)`),
+  so guides still run on older agents; in local preview `step.trackAction` is simply absent and analytics is skipped.
 - Never use inline `onclick` attributes — they break CSP-compliant content generation. Use `addEventListener` instead.
 - The `<style>` tag must use `id="pendo-inline-css"` and `type="text/css"`.
 - Do NOT wrap in `<!DOCTYPE html>`, `<html>`, `<head>`, or `<body>` tags — Pendo injects the content into its own container.
@@ -316,8 +400,8 @@ For a 3-step walkthrough, produce 3 files: `step-1.html`, `step-2.html`, `step-3
   <h2>Welcome to Analytics</h2>
   <p>Your new dashboard gives you real-time insights into how users engage with your product.</p>
   <div class="guide-buttons">
-    <button class="btn-secondary" id="snooze-btn">Not now</button>
-    <button class="btn-primary" id="advance-btn">Get Started</button>
+    <button class="btn-secondary" id="pendo-button-5e6f7a8b" data-pendo-action='[{"action":"guideSnoozed"}]'>Not now</button>
+    <button class="btn-primary" id="pendo-button-6f7a8b9c" data-pendo-action='[{"action":"advanceGuide"}]'>Get Started</button>
   </div>
 </div>
 
@@ -351,31 +435,44 @@ For a 3-step walkthrough, produce 3 files: `step-1.html`, `step-2.html`, `step-3
 (function(step, guide, pendo) {
   var polls = document.querySelectorAll('pendo-poll');
 
+  // Reports a guideActivity analytics event for `el`, deriving id/type/text from
+  // the DOM element, then the caller performs the behavior. `el` is the clicked
+  // element (pass `this` from the handler). Guarded so guides still work on older
+  // agents (and in local preview) that lack step.trackAction.
+  function track(el, acts) {
+    if (!step.trackAction || !el) return;
+    step.trackAction({ elementId: el.id, elementType: el.tagName, actions: acts });
+  }
+
   var actions = {
-    submitPolls: function() {
+    submit: function(el) {
       var responses = [];
       polls.forEach(function(p) {
         if (p.hasValue()) responses.push({ pollId: p.pollId, value: p.getSerializedValue() });
       });
       if (responses.length) step.response(responses);
+      track(el, [{ action: 'submitPoll' }]);
+      step.advance();
     },
-    advance: function() { step.advance(); },
-    previous: function() { pendo.onGuidePrevious(); },
-    dismiss: function() { step.dismiss(); },
-    snooze: function(d) { pendo.onGuideSnoozed(guide.id, step.id, d || 86400000); },
-    openLink: function(url, target) {
+    advance: function(el) { track(el, [{ action: 'advanceGuide' }]); step.advance(); },
+    previous: function(el) { track(el, [{ action: 'previousStep' }]); pendo.onGuidePrevious(); },
+    dismiss: function(el) { track(el, [{ action: 'dismissGuide' }]); step.dismiss(); },
+    snooze: function(el, d) { d = d || 86400000; track(el, [{ action: 'guideSnoozed', duration: d, timeUnit: 'ms' }]); pendo.onGuideSnoozed(guide.id, step.id, d); },
+    openLink: function(el, url, target) {
+      target = target || '_blank';
+      track(el, [{ action: 'openLink', url: url, target: target }]);
       step.eventRouter.eventable.trigger('pendoEvent', {
         action: 'openLink', step: step,
-        params: [{ name: 'url', value: url }, { name: 'target', value: target || '_blank' }]
+        params: [{ name: 'url', value: url }, { name: 'target', value: target }]
       });
     }
   };
 
-  document.getElementById('snooze-btn').addEventListener('click', function() {
-    actions.snooze(86400000);
+  document.getElementById('pendo-button-5e6f7a8b').addEventListener('click', function() {
+    actions.snooze(this, 86400000);
   });
-  document.getElementById('advance-btn').addEventListener('click', function() {
-    actions.advance();
+  document.getElementById('pendo-button-6f7a8b9c').addEventListener('click', function() {
+    actions.advance(this);
   });
 })(step, guide, pendo);
 </script>
@@ -398,8 +495,8 @@ For a 3-step walkthrough, produce 3 files: `step-1.html`, `step-2.html`, `step-3
   <h2>Create Your First Report</h2>
   <p>Select any event from the sidebar to build a custom report. Try filtering by date range or segment.</p>
   <div class="guide-buttons">
-    <button class="btn-secondary" id="back-btn">Back</button>
-    <button class="btn-primary" id="advance-btn">Next</button>
+    <button class="btn-secondary" id="pendo-button-7a8b9c0d" data-pendo-action='[{"action":"previousStep"}]'>Back</button>
+    <button class="btn-primary" id="pendo-button-8b9c0d1e" data-pendo-action='[{"action":"advanceGuide"}]'>Next</button>
   </div>
 </div>
 
@@ -433,31 +530,44 @@ For a 3-step walkthrough, produce 3 files: `step-1.html`, `step-2.html`, `step-3
 (function(step, guide, pendo) {
   var polls = document.querySelectorAll('pendo-poll');
 
+  // Reports a guideActivity analytics event for `el`, deriving id/type/text from
+  // the DOM element, then the caller performs the behavior. `el` is the clicked
+  // element (pass `this` from the handler). Guarded so guides still work on older
+  // agents (and in local preview) that lack step.trackAction.
+  function track(el, acts) {
+    if (!step.trackAction || !el) return;
+    step.trackAction({ elementId: el.id, elementType: el.tagName, actions: acts });
+  }
+
   var actions = {
-    submitPolls: function() {
+    submit: function(el) {
       var responses = [];
       polls.forEach(function(p) {
         if (p.hasValue()) responses.push({ pollId: p.pollId, value: p.getSerializedValue() });
       });
       if (responses.length) step.response(responses);
+      track(el, [{ action: 'submitPoll' }]);
+      step.advance();
     },
-    advance: function() { step.advance(); },
-    previous: function() { pendo.onGuidePrevious(); },
-    dismiss: function() { step.dismiss(); },
-    snooze: function(d) { pendo.onGuideSnoozed(guide.id, step.id, d || 86400000); },
-    openLink: function(url, target) {
+    advance: function(el) { track(el, [{ action: 'advanceGuide' }]); step.advance(); },
+    previous: function(el) { track(el, [{ action: 'previousStep' }]); pendo.onGuidePrevious(); },
+    dismiss: function(el) { track(el, [{ action: 'dismissGuide' }]); step.dismiss(); },
+    snooze: function(el, d) { d = d || 86400000; track(el, [{ action: 'guideSnoozed', duration: d, timeUnit: 'ms' }]); pendo.onGuideSnoozed(guide.id, step.id, d); },
+    openLink: function(el, url, target) {
+      target = target || '_blank';
+      track(el, [{ action: 'openLink', url: url, target: target }]);
       step.eventRouter.eventable.trigger('pendoEvent', {
         action: 'openLink', step: step,
-        params: [{ name: 'url', value: url }, { name: 'target', value: target || '_blank' }]
+        params: [{ name: 'url', value: url }, { name: 'target', value: target }]
       });
     }
   };
 
-  document.getElementById('back-btn').addEventListener('click', function() {
-    actions.previous();
+  document.getElementById('pendo-button-7a8b9c0d').addEventListener('click', function() {
+    actions.previous(this);
   });
-  document.getElementById('advance-btn').addEventListener('click', function() {
-    actions.advance();
+  document.getElementById('pendo-button-8b9c0d1e').addEventListener('click', function() {
+    actions.advance(this);
   });
 })(step, guide, pendo);
 </script>
@@ -480,8 +590,8 @@ For a 3-step walkthrough, produce 3 files: `step-1.html`, `step-2.html`, `step-3
   <h2>You're All Set</h2>
   <p>Explore on your own or check out our docs for advanced tips.</p>
   <div class="guide-buttons">
-    <a class="btn-link" id="docs-link">View docs</a>
-    <button class="btn-primary" id="finish-btn">Done</button>
+    <a class="btn-link" id="pendo-button-9c0d1e2f" data-pendo-action='[{"action":"openLink"}]'>View docs</a>
+    <button class="btn-primary" id="pendo-button-0d1e2f3a" data-pendo-action='[{"action":"advanceGuide"}]'>Done</button>
   </div>
 </div>
 
@@ -515,31 +625,44 @@ For a 3-step walkthrough, produce 3 files: `step-1.html`, `step-2.html`, `step-3
 (function(step, guide, pendo) {
   var polls = document.querySelectorAll('pendo-poll');
 
+  // Reports a guideActivity analytics event for `el`, deriving id/type/text from
+  // the DOM element, then the caller performs the behavior. `el` is the clicked
+  // element (pass `this` from the handler). Guarded so guides still work on older
+  // agents (and in local preview) that lack step.trackAction.
+  function track(el, acts) {
+    if (!step.trackAction || !el) return;
+    step.trackAction({ elementId: el.id, elementType: el.tagName, actions: acts });
+  }
+
   var actions = {
-    submitPolls: function() {
+    submit: function(el) {
       var responses = [];
       polls.forEach(function(p) {
         if (p.hasValue()) responses.push({ pollId: p.pollId, value: p.getSerializedValue() });
       });
       if (responses.length) step.response(responses);
+      track(el, [{ action: 'submitPoll' }]);
+      step.advance();
     },
-    advance: function() { step.advance(); },
-    previous: function() { pendo.onGuidePrevious(); },
-    dismiss: function() { step.dismiss(); },
-    snooze: function(d) { pendo.onGuideSnoozed(guide.id, step.id, d || 86400000); },
-    openLink: function(url, target) {
+    advance: function(el) { track(el, [{ action: 'advanceGuide' }]); step.advance(); },
+    previous: function(el) { track(el, [{ action: 'previousStep' }]); pendo.onGuidePrevious(); },
+    dismiss: function(el) { track(el, [{ action: 'dismissGuide' }]); step.dismiss(); },
+    snooze: function(el, d) { d = d || 86400000; track(el, [{ action: 'guideSnoozed', duration: d, timeUnit: 'ms' }]); pendo.onGuideSnoozed(guide.id, step.id, d); },
+    openLink: function(el, url, target) {
+      target = target || '_blank';
+      track(el, [{ action: 'openLink', url: url, target: target }]);
       step.eventRouter.eventable.trigger('pendoEvent', {
         action: 'openLink', step: step,
-        params: [{ name: 'url', value: url }, { name: 'target', value: target || '_blank' }]
+        params: [{ name: 'url', value: url }, { name: 'target', value: target }]
       });
     }
   };
 
-  document.getElementById('docs-link').addEventListener('click', function() {
-    actions.openLink('https://docs.example.com/analytics', '_blank');
+  document.getElementById('pendo-button-9c0d1e2f').addEventListener('click', function() {
+    actions.openLink(this, 'https://docs.example.com/analytics', '_blank');
   });
-  document.getElementById('finish-btn').addEventListener('click', function() {
-    actions.advance();
+  document.getElementById('pendo-button-0d1e2f3a').addEventListener('click', function() {
+    actions.advance(this);
   });
 })(step, guide, pendo);
 </script>
