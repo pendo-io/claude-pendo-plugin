@@ -17,6 +17,11 @@
       "description": "Detect AI agents in your codebase and instrument them with Pendo agent analytics"
     },
     {
+      "name": "setup-mcp-agent-analytics",
+      "source": "./plugins/setup-mcp-agent-analytics/",
+      "description": "Detect an MCP server's language (Python, TypeScript, or Go) and instrument it with the matching Pendo SDK for MCP analytics"
+    },
+    {
       "name": "pendo-guides",
       "source": "./plugins/pendo-guides/",
       "description": "Create production-ready Pendo in-app guides (walkthroughs, announcements, alerts, polls, promotions) as HTML/CSS/JS from a short intake conversation"
