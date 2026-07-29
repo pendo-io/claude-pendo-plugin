@@ -4,12 +4,13 @@ Pendo analytics for Claude Code: account health, feature adoption, session repla
 
 ## Plugins
 
-This marketplace contains three plugins:
+This marketplace contains four plugins:
 
 | Plugin | Description |
 |:-------|:------------|
 | `pendo-analytics` | Pendo analytics skills for account health, feature adoption, session replays, feedback analysis, and data-informed planning |
 | `setup-agent-analytics` | Detect AI agents in your codebase and instrument them with Pendo agent analytics |
+| `setup-mcp-agent-analytics` | Detect an MCP server's language (Python, TypeScript, or Go) and instrument it with the matching Pendo SDK for MCP analytics |
 | `pendo-guides` | Create production-ready Pendo in-app guides (walkthroughs, announcements, alerts, polls, promotions) as HTML/CSS/JS from a short intake conversation |
 
 ## Quickstart
@@ -43,6 +44,11 @@ This marketplace contains three plugins:
    **setup-agent-analytics:**
    ```
    /setup-agent-analytics:setup-agent-analytics [agent-id-1] [agent-id-2] ...
+   ```
+
+   **setup-mcp-agent-analytics:**
+   ```
+   /setup-mcp-agent-analytics:setup-mcp-agent-analytics
    ```
 
    **pendo-guides:**
@@ -82,6 +88,11 @@ This marketplace contains three plugins:
    /setup-agent-analytics:setup-agent-analytics [agent-id-1] [agent-id-2] ...
    ```
 
+   **setup-mcp-agent-analytics:**
+   ```
+   /setup-mcp-agent-analytics:setup-mcp-agent-analytics
+   ```
+
    **pendo-guides:**
    ```
    /pendo-guides:pendo-guide-creator
@@ -105,6 +116,12 @@ This marketplace contains three plugins:
 | Skill | Description |
 |:------|:------------|
 | `setup-agent-analytics` | Detect AI agents in a codebase and instrument them with Pendo `trackAgent()` calls or the server-side Conversations API |
+
+### setup-mcp-agent-analytics skills
+
+| Skill | Description |
+|:------|:------------|
+| `setup-mcp-agent-analytics` | Detect an MCP server's language (Python, TypeScript, or Go) and instrument it with the matching Pendo SDK (`PendoMCPServer`, `initMcp()`, or `gosdk.Instrument()`) |
 
 ### pendo-guides skills
 
