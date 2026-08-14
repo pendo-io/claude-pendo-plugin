@@ -20,7 +20,7 @@ This skill requires both MCP servers that ship with the `pendo-analytics` plugin
 
 Both are auto-configured when the plugin is installed. Run `/mcp` once to authenticate each.
 
-The skill also depends on the `superpowers:writing-plans` skill being available — install the `superpowers` plugin alongside this one.
+The skill delegates to the `superpowers:writing-plans` skill when available. Install the `superpowers` plugin alongside this one for best results. If `superpowers` is not installed, the skill will produce the plan directly using the gathered Data Context instead of delegating.
 
 ## Step 0: Precheck (REQUIRED before classifying)
 
@@ -33,6 +33,8 @@ If either fails:
 - Tell the user which MCP is unreachable and how to fix it (run `/mcp`)
 - Offer to proceed with whichever MCPs are available, **clearly noting the gap** in the Data Context Caveats
 - Do NOT silently skip — the planner needs to know what data wasn't available
+
+Also check whether `/superpowers:writing-plans` is available. If not, note it and plan to use the fallback in Step 4.
 
 ## When to Use
 
@@ -123,6 +125,8 @@ The planner must know when not to trust the numbers.
 
 ## Step 4: Delegate
 
+If `/superpowers:writing-plans` is available, delegate:
+
 ```
 /superpowers:writing-plans
 
@@ -134,6 +138,8 @@ The planner must know when not to trust the numbers.
 ```
 
 The planner writes the plan. This skill ends here.
+
+**Fallback (superpowers not installed):** If the `superpowers` plugin is not available, write the plan directly. Use the Data Context block to ground your plan in the gathered data. Structure the plan with: goal, key findings from the data, prioritized action items, success metrics, and risks/caveats. Keep the same data-driven rigor — the only difference is you're writing the plan yourself instead of delegating.
 
 ## Quick Reference
 

@@ -1,9 +1,11 @@
 {
   "name": "pendo-plugins",
   "description": "Official Pendo plugins for Claude Code",
+  "allowCrossMarketplaceDependenciesOn": ["superpowers-marketplace"],
   "owner": {
     "name": "Pendo",
-    "email": "plugins@pendo.io"
+    "email": "plugins@pendo.io",
+    "url": "https://www.pendo.io/"
   },
   "plugins": [
     {
