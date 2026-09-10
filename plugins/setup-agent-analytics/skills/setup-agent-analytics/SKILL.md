@@ -186,7 +186,7 @@ All four paths send the same event model to Pendo. Before you start, understand 
 
 | Field | How to wire it |
 |-------|----------------|
-| `modelUsed` | From the LLM SDK `model` parameter, config variable, or response object (`response.model`). Not a hardcoded string. |
+| `agentModelsUsed` | Array of model(s) from the LLM SDK `model` parameter, config variable, or response object (`response.model`), e.g. `[config.model]`. Not a hardcoded string. |
 | `suggestedPrompt` | Only if the UI has prompt chips/suggestions. Set `true` on the chip click path, `false` on manual input. Omit entirely if no such UI. |
 | `fileUploaded` | Only if the UI has file upload. Reference actual state (`attachments.length > 0`). Omit if no upload. |
 | `toolsUsed` | Extract from the SDK response (`response.tool_calls`, `content.filter(b => b.type === "tool_use")`). Omit if no tool calling. |
@@ -443,7 +443,7 @@ export function trackAgentEvent(
     conversationId: string;
     messageId: string;
     content: string;
-    modelUsed?: string;
+    agentModelsUsed?: string[];
     suggestedPrompt?: boolean;
     toolsUsed?: string[];
     fileUploaded?: boolean;
@@ -503,7 +503,7 @@ trackAgentEvent("agent_response", {
   messageId: response.id ?? crypto.randomUUID(),
   content: fullResponseText,
   // Only if detected:
-  // modelUsed: response.model ?? config.model,
+  // agentModelsUsed: [response.model ?? config.model],
   // toolsUsed: toolCalls.map(t => t.name),
 });
 ```
@@ -559,7 +559,7 @@ interface TrackAgentEventOptions {
   content: string;
   visitorId: string;
   accountId?: string;
-  modelUsed?: string;
+  agentModelsUsed?: string[];
   suggestedPrompt?: boolean;
   toolsUsed?: string[];
   fileUploaded?: boolean;
@@ -582,7 +582,7 @@ export async function trackAgentEvent(
         conversationId: metadata.conversationId,
         messageId: metadata.messageId,
         content: metadata.content, // full content — no client-side truncation
-        ...(metadata.modelUsed && { modelUsed: metadata.modelUsed }),
+        ...(metadata.agentModelsUsed && { agentModelsUsed: metadata.agentModelsUsed }),
         ...(metadata.suggestedPrompt !== undefined && { suggestedPrompt: metadata.suggestedPrompt }),
         ...(metadata.toolsUsed && { toolsUsed: metadata.toolsUsed }),
         ...(metadata.fileUploaded !== undefined && { fileUploaded: metadata.fileUploaded }),
@@ -619,7 +619,7 @@ def track_agent_event(
     agent_id: str, conversation_id: str, message_id: str,
     content: str, visitor_id: str,
     account_id: Optional[str] = None,
-    model_used: Optional[str] = None,
+    agent_models_used: Optional[list[str]] = None,
     suggested_prompt: Optional[bool] = None,
     tools_used: Optional[list[str]] = None,
     file_uploaded: Optional[bool] = None,
@@ -634,7 +634,7 @@ def track_agent_event(
             "messageId": message_id,
             "content": content,  # full content — no client-side truncation
         }
-        if model_used is not None: props["modelUsed"] = model_used
+        if agent_models_used is not None: props["agentModelsUsed"] = agent_models_used
         if suggested_prompt is not None: props["suggestedPrompt"] = suggested_prompt
         if tools_used is not None: props["toolsUsed"] = tools_used
         if file_uploaded is not None: props["fileUploaded"] = file_uploaded
@@ -711,7 +711,7 @@ After instrumentation:
 4. **`conversationId` reuse** — same variable threaded through prompt, response, and reactions within a session.
 
 5. **Optional metadata wired dynamically:**
-   - `modelUsed` references a variable/config/response field, never a hardcoded model name
+   - `agentModelsUsed` references a variable/config/response field (wrapped in an array), never a hardcoded model name
    - `suggestedPrompt`, `fileUploaded`, `toolsUsed` only present where the underlying capability exists, omitted otherwise
 
 6. **Path-specific:**
