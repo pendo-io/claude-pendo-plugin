@@ -1,10 +1,10 @@
 # Pendo plugins for Claude Code
 
-Pendo analytics for Claude Code: account health, feature adoption, session replays, feedback analysis, data-informed planning, and agent analytics setup.
+Pendo analytics for Claude Code: account health, feature adoption, session replays, feedback analysis, data-informed planning, agent analytics setup, and Orchestrate journey building.
 
 ## Plugins
 
-This marketplace contains four plugins:
+This marketplace contains five plugins:
 
 | Plugin | Description |
 |:-------|:------------|
@@ -12,6 +12,7 @@ This marketplace contains four plugins:
 | `setup-agent-analytics` | Detect AI agents in your codebase and instrument them with Pendo agent analytics |
 | `setup-mcp-agent-analytics` | Detect an MCP server's language (Python, TypeScript, or Go) and instrument it with the matching Pendo SDK for MCP analytics |
 | `pendo-guides` | Create production-ready Pendo in-app guides (walkthroughs, announcements, alerts, polls, promotions) as HTML/CSS/JS from a short intake conversation |
+| `pendo-orchestrate` | Create, configure, and edit draft Orchestrate email journeys via Pendo MCP — multi-email journeys, conditional splits, and email content; activation in Orchestrate UI |
 
 ## Quickstart
 
@@ -56,6 +57,11 @@ This marketplace contains four plugins:
    /pendo-guides:pendo-guide-creator
    ```
 
+   **pendo-orchestrate:**
+   ```
+   /pendo-orchestrate:orchestrate-journeys
+   ```
+
 ### Option B: Manual Installation
 
 1. **Clone the repo:**
@@ -98,6 +104,11 @@ This marketplace contains four plugins:
    /pendo-guides:pendo-guide-creator
    ```
 
+   **pendo-orchestrate:**
+   ```
+   /pendo-orchestrate:orchestrate-journeys
+   ```
+
 ## Components
 
 ### pendo-analytics skills
@@ -129,9 +140,15 @@ This marketplace contains four plugins:
 |:------|:------------|
 | `pendo-guide-creator` | Runs a short intake conversation, then generates production-ready Pendo in-app guides (walkthroughs, announcements, alerts, polls, promotions) as standalone HTML/CSS/JS files with wired button actions and `<pendo-poll>` data collection |
 
+### pendo-orchestrate skills
+
+| Skill | Description |
+|:------|:------------|
+| `orchestrate-journeys` | Lifecycle skill for draft Orchestrate journeys: intake, create, configure audience/schedule/goal, write email HTML, and hand off for activation in the Orchestrate UI |
+
 ### MCP Servers
 
-The `pendo-analytics` plugin auto-configures two MCP servers:
+The `pendo-analytics` and `pendo-orchestrate` plugins auto-configure the Pendo MCP server (`pendo-external`). The `pendo-analytics` plugin also configures Novus:
 
 | Server | URL | Purpose |
 |:-------|:----|:--------|
