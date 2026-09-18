@@ -148,12 +148,14 @@ This marketplace contains five plugins:
 
 ### MCP Servers
 
-The `pendo-analytics` and `pendo-orchestrate` plugins auto-configure the Pendo MCP server (`pendo-external`). The `pendo-analytics` plugin also configures Novus:
+The `pendo-analytics`, `pendo-guides`, and `pendo-orchestrate` plugins auto-configure the Pendo connector (`pendo-external`). The `pendo-analytics` plugin also configures Novus:
 
 | Server | URL | Purpose |
 |:-------|:----|:--------|
 | `pendo-external` | `https://app.pendo.io/mcp/v0/shttp` | Pendo analytics, feedback, session replays, segments |
-| `novus` | `https://novus-api.pendo.io/mcp` | Novus artifact graph, signals, issues, product wiki |
+| `novus` | `https://novus-api.pendo.io/mcp` | Pendo's Novus product-intelligence beta — analyzes a connected repo and proposes instrumentation changes as PRs — exposed over MCP |
+
+Both servers use the same Pendo OAuth login and are covered by the same [Pendo Terms of Service](https://www.pendo.io/legal/terms-of-service/) and [Privacy Policy](https://www.pendo.io/legal/privacy-policy/). The `novus` server is additionally covered by the Novus beta terms.
 
 Run `/mcp` once after installing the plugin to authenticate each server.
 
@@ -194,9 +196,17 @@ Run `/mcp` once after installing the plugin to authenticate each server.
 | `preview_guide` | Render a Pendo guide preview |
 | `create_flag` / `update_flag` | Feature flag tooling |
 
-### Skill Dependencies
+### Recommended Plugins
 
-`data-informed-planning` delegates plan-writing to `/superpowers:writing-plans`. Install the [superpowers plugin](https://github.com/obra/superpowers) alongside this one to get the full workflow.
+The `data-informed-planning` skill can optionally delegate plan-writing to `/superpowers:writing-plans` for richer output. If the [superpowers plugin](https://github.com/obra/superpowers) is installed, the skill will use it automatically; otherwise it writes the plan itself. To install superpowers:
+
+```
+/plugin marketplace add obra/superpowers-marketplace
+```
+
+## Privacy
+
+Use of the Pendo MCP servers is subject to the [Pendo Privacy Policy](https://www.pendo.io/legal/privacy-policy/) and [Terms of Service](https://www.pendo.io/legal/terms-of-service/).
 
 ## License
 
