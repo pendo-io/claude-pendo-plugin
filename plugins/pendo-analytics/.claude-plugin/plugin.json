@@ -1,7 +1,7 @@
 {
   "name": "pendo-analytics",
   "displayName": "Pendo Analytics",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Bring Pendo analytics into Claude Code with skills for account health, feature adoption, session replays, feedback analysis, and data-informed planning",
   "author": {
     "name": "Pendo",
@@ -11,13 +11,18 @@
   "repository": "https://github.com/pendo-io/claude-pendo-plugin",
   "license": "MIT",
   "keywords": ["pendo", "analytics", "customer-success", "product-management"],
-  "dependencies": [
-    { "name": "superpowers" }
-  ],
+  "userConfig": {
+    "pendo_region": {
+      "type": "string",
+      "title": "Pendo region",
+      "description": "Your Pendo data center region. US: app.pendo.io | US1: us1.app.pendo.io | EU: app.eu.pendo.io | Japan: app.jpn.pendo.io | Australia: app.au.pendo.io",
+      "default": "https://app.pendo.io/mcp/v0/shttp"
+    }
+  },
   "mcpServers": {
     "pendo-external": {
       "type": "http",
-      "url": "https://app.pendo.io/mcp/v0/shttp"
+      "url": "${user_config.pendo_region}"
     },
     "novus": {
       "type": "http",

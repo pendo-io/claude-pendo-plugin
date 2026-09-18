@@ -1,7 +1,7 @@
 {
   "name": "pendo-guides",
   "displayName": "Pendo Guides",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Create production-ready Pendo in-app guides (walkthroughs, announcements, alerts, polls, promotions) as HTML/CSS/JS from a short intake conversation",
   "author": {
     "name": "Pendo",
@@ -10,5 +10,19 @@
   "homepage": "https://github.com/pendo-io/claude-pendo-plugin",
   "repository": "https://github.com/pendo-io/claude-pendo-plugin",
   "license": "MIT",
-  "keywords": ["pendo", "guides", "in-app", "onboarding", "product-management"]
+  "keywords": ["pendo", "guides", "in-app", "onboarding", "product-management"],
+  "userConfig": {
+    "pendo_region": {
+      "type": "string",
+      "title": "Pendo region",
+      "description": "Your Pendo data center region. US: app.pendo.io | US1: us1.app.pendo.io | EU: app.eu.pendo.io | Japan: app.jpn.pendo.io | Australia: app.au.pendo.io",
+      "default": "https://app.pendo.io/mcp/v0/shttp"
+    }
+  },
+  "mcpServers": {
+    "pendo-external": {
+      "type": "http",
+      "url": "${user_config.pendo_region}"
+    }
+  }
 }
