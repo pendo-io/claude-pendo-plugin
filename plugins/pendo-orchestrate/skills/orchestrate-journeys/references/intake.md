@@ -32,14 +32,18 @@ Acknowledge what the user already shared, then ask what is still missing.
 
 When the user already gave **journey name**, **application**, and **what to build** (Round 1):
 
+One-shot skips **Round 1 and Round 2 questions** only. First run **Confirm new journey vs edit existing**
+above (resolve `subId` / `appId`, `listOrchestrateJourneys` when needed, create vs edit) — do not jump
+straight to approval.
+
 1. Acknowledge what they shared — do not re-ask Round 1.
 2. Briefly note any Round 2 topics they skipped (audience, schedule, goal, email content) and that those can
    wait until after create unless they specified them.
 3. **Confirm and proceed** — summarize the create tool and graph you will use, then ask for approval to create.
    Do not invent filler questions to satisfy two rounds.
 
-After they approve (or Round 2 finishes), resolve `subId` and `appId` via `references/identify-journey.md` if
-still unknown, then create.
+After they approve (or Round 2 finishes), resolve any remaining `subId` / `appId` gaps via
+`references/identify-journey.md`, then create.
 
 ### Round 1 — Required
 
