@@ -6,7 +6,9 @@ Run before any mutation on an **existing** journey, and before create when `subI
 
 ## Subscription and application
 
-Resolve **`subId` and `appId` together** before `listOrchestrateJourneys` or any Orchestrate set/write tool.
+Resolve **`subId` and `appId` together** before `listOrchestrateJourneys`
+name matching or before create. For set/write on an already-identified journey,
+`subId` plus the journey or email id is enough.
 Application ids are **not unique across subscriptions** — a wrong pair silently retargets every downstream mutation.
 Do not guess ids from journey names.
 
@@ -43,12 +45,16 @@ they meant.
 
 **If the user gave a name (no id or URL):**
 
-1. Call `listOrchestrateJourneys` (`limit` up to 500; paginate with `offset` if needed).
-2. Match by name in the results — there is no server-side name filter.
-3. **Zero matches** — for **edit** intent, tell the user and ask for a different name or the journey id. For
-   **create** intent, zero matches is expected — return to `references/intake.md`.
-4. **One match** — call `getOrchestrateJourney` with that `id`.
-5. **Two or more matches** — stop; list each candidate (`id`, `name`, `status`, `appId`) and ask which
+1. Resolve **`subId` and `appId`** via **Subscription and application** above if either is still unknown. Do
+   not pick a journey from a different application.
+2. Call `listOrchestrateJourneys` with `subId` (`limit` up to 500; paginate with `offset` if needed).
+3. Match by name in the results — there is no server-side name filter — then **keep only rows whose `appId`
+   equals the resolved `appId`**. Ignore same-name journeys on other applications in the subscription.
+4. **Zero matches** after that filter — for **edit** intent, tell the user and ask for a different name or
+   the journey id. For **create** intent, zero matches is expected — return to `references/intake.md`.
+5. **One match** — call `getOrchestrateJourney` with that `id`. Confirm `name` and `appId` match what they
+   meant.
+6. **Two or more matches** — stop; list each candidate (`id`, `name`, `status`, `appId`) and ask which
    journey to edit. Do not call any set/write tool until the user picks one.
 
 Never mutate using a display name alone — you need a single `journeyId` first.
