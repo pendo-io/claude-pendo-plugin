@@ -1,6 +1,6 @@
 # Pendo plugins for Claude Code
 
-Pendo analytics for Claude Code: account health, feature adoption, session replays, feedback analysis, data-informed planning, agent analytics setup, and Orchestrate journey building.
+Pendo analytics for Claude Code: app health, account health, feature adoption, session replays, feedback analysis, data-informed planning, agent analytics setup, and Orchestrate journey building.
 
 ## Plugins
 
@@ -8,7 +8,7 @@ This marketplace contains five plugins:
 
 | Plugin | Description |
 |:-------|:------------|
-| `pendo-analytics` | Pendo analytics skills for account health, feature adoption, session replays, feedback analysis, and data-informed planning |
+| `pendo-analytics` | Pendo analytics skills for account health, app health, feature adoption, session replays, feedback analysis, and data-informed planning |
 | `setup-agent-analytics` | Detect AI agents in your codebase and instrument them with Pendo agent analytics |
 | `setup-mcp-agent-analytics` | Detect an MCP server's language (Python, TypeScript, or Go) and instrument it with the matching Pendo SDK for MCP analytics |
 | `pendo-guides` | Create production-ready Pendo in-app guides (walkthroughs, announcements, alerts, polls, promotions) as HTML/CSS/JS from a short intake conversation |
@@ -34,6 +34,7 @@ This marketplace contains five plugins:
 
    **pendo-analytics:**
    ```
+   /pendo-analytics:app-health <app-name>
    /pendo-analytics:account-health <account-name>
    /pendo-analytics:feature-adoption <feature-name>
    /pendo-analytics:feedback-analysis
@@ -81,6 +82,7 @@ This marketplace contains five plugins:
 
    **pendo-analytics:**
    ```
+   /pendo-analytics:app-health <app-name>
    /pendo-analytics:account-health <account-name>
    /pendo-analytics:feature-adoption <feature-name>
    /pendo-analytics:feedback-analysis
@@ -115,6 +117,7 @@ This marketplace contains five plugins:
 
 | Skill | Description |
 |:------|:------------|
+| `app-health` | Generate a shareable health report for one application — engagement, acquisition, retention, average time, stickiness, frustration signals, and survey scores, with a verdict and next steps |
 | `account-health` | Prepare for a customer call by synthesizing engagement, sentiment, and feedback from Pendo analytics |
 | `feature-adoption` | Analyze feature adoption rates, identify power users vs laggards, and track adoption trends |
 | `feedback-analysis` | Deep analysis of customer feedback - discover themes, extract insights, and identify risks |
@@ -165,6 +168,11 @@ Run `/mcp` once after installing the plugin to authenticate each server.
 |:-----|:--------|
 | `activityQuery` | Engagement metrics and activity data |
 | `productEngagementScore` | PES calculations |
+| `appUsage` | App-level active visitors/accounts, events, average time, and frustration counts (rage/dead/error clicks, u-turns) |
+| `appUsageTimeSeries` | Per-period app usage trend; basis for DAU/MAU stickiness |
+| `acquisitionTrend` | New visitors and accounts acquired per period |
+| `cohortRetentionCurve` | Retention curve for a cohort of new visitors |
+| `surveyScores` | NPS, CSAT, and PMF survey scores with response counts |
 | `searchEntities` | Find accounts, pages, features |
 | `accountQuery` | Account metadata |
 | `accountMetadataSchema` | Account metadata schema |
