@@ -1,13 +1,15 @@
 ---
 name: setup-mcp-agent-analytics
 description: >-
-  Instrument an MCP server with Pendo MCP analytics in Python, TypeScript, or
-  Go. Detects which language/SDK the server is built with and wires up the
-  matching Pendo integration — PendoMCPServer (Python), initMcp() (TypeScript),
-  or gosdk.Instrument() (Go) — then verifies data is flowing to Pendo Agent
+  Instrument an MCP server with Pendo MCP analytics in Python, TypeScript,
+  Go, or Java. Detects which language/SDK the server is built with and wires
+  up the matching Pendo integration — PendoMCPServer (Python), initMcp()
+  (TypeScript), gosdk.Instrument() (Go), or PendoMcpServer.wrapAll() (Java,
+  io.pendo:pendo-sdk-mcp) — then verifies data is flowing to Pendo Agent
   Analytics. Use this whenever the user wants Pendo analytics on an MCP
   server, mentions "MCP analytics", "track MCP tool calls", "PendoMCPServer",
-  "initMcp", "instrument my MCP server", or has an MCP server and asks for
+  "PendoMcpServer", "initMcp", "pendo-sdk-mcp", "instrument my MCP server",
+  or has an MCP server (including a Spring AI MCP server) and asks for
   Pendo/agent analytics — even if they don't say "MCP analytics" verbatim.
   NOT for instrumenting regular (non-MCP) agents — use setup-agent-analytics
   for that.
@@ -20,14 +22,14 @@ Instrument an MCP server so tool calls, user intent, and client info flow to
 Pendo Agent Analytics. The guiding contract, set by product: **a customer
 installing for MCP analytics gets ONLY MCP analytics** — never silently
 instrument their other LLM/agent code. This applies identically across all
-three SDKs below.
+four SDKs below.
 
-There are three SDKs, one per language — your first job is to detect which
+There are four SDKs, one per language — your first job is to detect which
 one applies.
 
 ---
 
-## Phase 0: Identify the SDK (Python, TypeScript, or Go)
+## Phase 0: Identify the SDK (Python, TypeScript, Go, or Java)
 
 Look at the project for the MCP framework in use:
 
@@ -36,15 +38,19 @@ Look at the project for the MCP framework in use:
 | `pyproject.toml` / `requirements.txt` with `mcp`; `Server(` from `mcp.server.lowlevel` or `FastMCP(` from `mcp.server.fastmcp` | **Python** — `pendo-server-sdk` (pip, `[mcp]` extra) |
 | `package.json` with `@modelcontextprotocol/sdk`; `new McpServer(` or `new Server(` | **TypeScript** — `pendo-server-sdk` (npm) |
 | `go.mod` with `github.com/modelcontextprotocol/go-sdk` (or another Go MCP framework, e.g. `mark3labs/mcp-go`) | **Go** — `github.com/pendo-io/go-sdk` |
+| `pom.xml` / `build.gradle(.kts)` with `io.modelcontextprotocol.sdk:mcp` or a Spring AI `spring-ai-starter-mcp-server*`; `McpServer.sync(` / `McpServer.async(`, or `@McpTool` methods | **Java** — `io.pendo:pendo-sdk-mcp` (MCP Java SDK 1.0+/2.x) or `io.pendo:pendo-sdk-mcp-0x` (0.x generation; Spring AI 1.x). The Java section has the generation check. |
 
 If several MCP servers exist (possibly in different languages, e.g. a
 monorepo), confirm which to instrument — each gets its own agent ID. State
 the detected language in one line ("I'll use the **TypeScript SDK** — this
-is an `@modelcontextprotocol/sdk` server") and confirm before proceeding,
-unless the user already named the language or only one server is present.
+is an `@modelcontextprotocol/sdk` server"; for Java also name the module:
+"I'll use the **Java SDK**, module `pendo-sdk-mcp-0x` — this is a Spring AI
+1.x server on MCP SDK 0.18.3") and confirm before proceeding, unless the
+user already named the language or only one server is present.
 
 Then jump to the matching section below: **[Python](#python-pendo-server-sdk)**,
-**[TypeScript](#typescript-pendo-server-sdk)**, or **[Go](#go-github-compendo-iogo-sdk)**.
+**[TypeScript](#typescript-pendo-server-sdk)**, **[Go](#go-github-compendo-iogo-sdk)**,
+or **[Java](#java-iopendopendo-sdk-mcp--pendo-sdk-mcp-0x)**.
 
 ---
 
@@ -58,7 +64,7 @@ Ask, don't guess:
 - **Agent ID** — the Agent Analytics agent this data routes to; the user
   creates it in the Pendo UI first (Product → Agent Analytics → settings
   icon next to the agent name).
-- **Endpoint** — only for non-US-prod (EU / dev stacks). All three SDKs
+- **Endpoint** — only for non-US-prod (EU / dev stacks). All four SDKs
   default to `https://app.pendo.io`, sending to
   `<endpoint>/data/agenticsdk/<api_key>`.
 
@@ -426,19 +432,214 @@ reactions need to be recorded.
 
 ---
 
+## Java (`io.pendo:pendo-sdk-mcp` / `pendo-sdk-mcp-0x`)
+
+### Prerequisites
+
+- JDK 17 or later.
+- The **Application API Key** and the **Agent ID** (Phase 1).
+
+### Find the MCP server
+
+Look for the official MCP Java SDK: `pom.xml` / `build.gradle(.kts)` with
+`io.modelcontextprotocol.sdk:mcp`, or a Spring AI MCP server starter
+(`org.springframework.ai:spring-ai-starter-mcp-server*`). Plain servers build
+with `McpServer.sync(` / `McpServer.async(` and pass `SyncToolSpecification` /
+`AsyncToolSpecification`s to `.tools(...)`; Spring AI servers have `@McpTool`
+methods or `ToolCallback` beans and no explicit builder.
+
+**Pick the module by MCP SDK generation** — the one decision Java has that
+the other languages don't:
+
+```bash
+mvn -q dependency:tree -Dincludes=io.modelcontextprotocol.sdk   # or: gradle dependencies | grep modelcontextprotocol
+```
+
+| Resolved `io.modelcontextprotocol.sdk:mcp*` | Typical source | Module |
+|---|---|---|
+| 1.0 or later (2.x today) | direct dependency; Spring AI 2.x / Spring Boot 4 | `io.pendo:pendo-sdk-mcp` |
+| 0.x (0.18.x) | Spring AI 1.x / Spring Boot 3.5 | `io.pendo:pendo-sdk-mcp-0x` |
+
+Same package (`io.pendo.sdk.mcp`), same API; only the artifact differs. Name
+the module in the one-line confirmation (Phase 0).
+
+### Install
+
+Add exactly one module (tell the user; don't run the build yourself unless
+asked). Until the SDK is on Maven Central it is served from Pendo's preview
+Maven repository, so the build needs the repository block as well as the
+dependency; once it is on Central, the block goes away. Pin the exact preview
+number. `pendo-sdk-core` arrives transitively; the MCP SDK is `provided`, so
+the customer's own version is the one used.
+
+```xml
+<repositories>
+  <repository>
+    <id>pendo-preview</id>
+    <url>https://storage.googleapis.com/pendo-sdk-maven/</url>
+  </repository>
+</repositories>
+
+<dependency>
+  <groupId>io.pendo</groupId>
+  <artifactId>pendo-sdk-mcp</artifactId>   <!-- pendo-sdk-mcp-0x for the 0.x generation -->
+  <version>0.1.0-preview.1</version>
+</dependency>
+```
+
+```kotlin
+repositories { maven { url = uri("https://storage.googleapis.com/pendo-sdk-maven/") } }
+implementation("io.pendo:pendo-sdk-mcp:0.1.0-preview.1")   // pendo-sdk-mcp-0x for the 0.x generation
+```
+
+### Wire it in
+
+Create one `PendoMcpServer` per process and pass the tool specifications
+through it on the way into the server builder. Wrapping the tools is the
+whole integration.
+
+```java
+import io.pendo.sdk.PendoConfig;
+import io.pendo.sdk.mcp.PendoMcpServer;
+
+PendoMcpServer pendo = PendoMcpServer.create(PendoConfig.builder()
+        .apiKey("<app api key>")
+        .agentId("<AA agent id>")
+        // .endpoint("<non-prod base URL>")
+        // .visitorId("static-visitor").accountId("static-account")
+        // .visitorIdResolver(ctx -> (String) ctx.transportAttribute("user-id"))
+        // .redact(true).requireConversationId(true).onDeliveryFailure(f -> ...)
+        .build());
+
+McpSyncServer server = McpServer.sync(transportProvider)
+        .serverInfo("my-mcp", "1.0.0")
+        .capabilities(ServerCapabilities.builder().tools(true).build())
+        .tools(pendo.wrapAll(echoTool(), addTool()))   // was: .tools(echoTool(), addTool())
+        .build();
+```
+
+**Spring AI** builds the server itself from `List<SyncToolSpecification>`
+beans (the `@McpTool` scanner and any `ToolCallback` beans); wrap those lists
+in a `BeanPostProcessor`:
+
+```java
+@Component
+public class PendoAnalytics implements BeanPostProcessor, DisposableBean {
+    private final PendoMcpServer pendo = PendoMcpServer.create(PendoConfig.builder()
+            .apiKey(System.getenv("PENDO_API_KEY")).agentId("<AA agent id>").build());
+
+    @Override @SuppressWarnings("unchecked")
+    public Object postProcessAfterInitialization(Object bean, String beanName) {
+        if (bean instanceof List<?> list && !list.isEmpty()
+                && list.stream().allMatch(SyncToolSpecification.class::isInstance)) {
+            return pendo.wrapSync((List<SyncToolSpecification>) list);
+        }
+        return bean;
+    }
+
+    @Override public void destroy() { pendo.close(); }
+}
+```
+
+Rules that matter:
+
+- **Specs are wrapped, not the handler layer.** Unlike the other three SDKs,
+  a tool that reaches the server without going through `wrap` / `wrapAll` is
+  invisible to Pendo. Tools added at runtime: `server.addTool(pendo.wrap(spec))`;
+  removed: `server.removeTool(name)` then `pendo.forgetTool(name)`. Async
+  servers: `wrapAll(AsyncToolSpecification...)` / `wrapAsync(List)`.
+- **`get_additional_tools` exactly once.** `wrapAll` / `wrapSync` / `wrapAsync`
+  append the SDK's virtual tool to every batch they wrap, and the MCP server
+  rejects a duplicate tool name at build time. Wrap in one batch, or `wrap`
+  each spec and register `pendo.virtualTool()` once. A Spring AI server with
+  both `@McpTool` methods and `ToolCallback` beans has two list beans — that
+  is this case.
+- **`user_intent` is required, and the 2.x server validates by default.** A
+  host that omits it is refused before the handler runs. That is the intended
+  behavior; `.validateToolInputs(false)` on the server builder is the escape
+  hatch. The 0.x generation never validates arguments.
+- **One `PendoMcpServer` per process.** Each `create` starts its own delivery
+  thread and shutdown hook. Streamable HTTP with per-session servers: wrap
+  every session's tools with the same instance, same agentId.
+- **MCP-only.** Only wrapped tools are instrumented; nothing patches LLM
+  client libraries.
+- **stdio transport:** stdout is the JSON-RPC channel. Route all logging to
+  stderr or a file (SLF4J Simple: `org.slf4j.simpleLogger.logFile=System.err`;
+  Spring Boot: `logging.pattern.console=` plus `logging.file.name=...`).
+- **Identity resolvers** run once per `tools/call`, before the handler, on the
+  request thread. `RequestContext.transportAttribute(key)` reads what the
+  transport's `contextExtractor` stored. Null/blank → the static value; a
+  throw is logged and never affects the call. stdio has no request context:
+  use static values or env vars. A blank visitor goes on the wire as
+  `anonymous`, with a one-time WARN (`pendo: tool call "…" has no visitor
+  configured or resolved; recording visitorId as "anonymous"`).
+- **Conversation id = MCP session id.** No session id (stdio, or a client
+  that sends none) → the call is recorded with an empty conversation id plus
+  a one-time warning naming 2026-12-01; `.requireConversationId(true)` skips
+  such calls instead. No fallback id is generated.
+- **Shutdown:** nothing to register. A JVM hook drains for up to 10 s (SIGTERM
+  fine, SIGKILL not). Call `pendo.close()` when the server is disposed without
+  exiting the JVM. Knobs: `batchSize` 512, `flushInterval` 2 s,
+  `maxQueueSize` 2048, `shutdownTimeout` 10 s.
+
+### Verify data is flowing
+
+1. **Quiet on success, loud on failure.** The Java SDK logs no success line.
+   Failures go to `System.Logger` `io.pendo.sdk` at WARNING (the JDK default
+   prints them to stderr; with SLF4J add `org.slf4j:slf4j-jdk-platform-logging`).
+   After a few tool calls, the only `pendo:` lines should be the one-time
+   advisories (no visitor configured; no session id); any line mentioning
+   `ingestion`, `delivery` or `discarded` is a failed batch. A rejected key:
+   `pendo: ingestion at <endpoint> rejected the API key (HTTP 401 Unauthorized); check PendoConfig.Builder.apiKey; N event(s) discarded`.
+   Don't trust silence alone — confirm the logger is actually routed.
+2. **Drive real traffic** over the protocol (MCP Inspector, or Claude Code
+   with `--mcp-config`), so `tools/list` shows `user_intent` and
+   `get_additional_tools` and `tools/call` carries the intent.
+3. **Wire-level assertions:** point `.endpoint(...)` at a local sink and read
+   the `/data/agenticsdk/<key>` requests (the contract repo's
+   `harness/sink.mjs`, or any HTTP server). Expect `tool_request` /
+   `tool_response` pairs with `user_intent` stripped from the recorded
+   arguments and the catalog attached once per conversation.
+4. **`onDeliveryFailure`** for code-level visibility: the callback receives
+   `DeliveryFailure(endpoint, eventCount, attempts, statusCode, responseDetail, cause, conversationIds)`.
+5. **Latency expectations:** as for the other SDKs — a 2xx is acceptance, not
+   persistence (a wrong `agentId` is dropped server-side silently); budget
+   about an hour before the UI reflects new data.
+
+### Troubleshooting
+
+| Check | What to look for |
+|-------|-------------------|
+| `Could not find artifact io.pendo:…` at build time | The preview repository block is missing from the build that resolves the dependency, or a proxy blocks `storage.googleapis.com`. |
+| `IllegalArgumentException: apiKey is required` / `agentId is required` | `PendoConfig.build()` validates its options; both are required, and the key must contain no whitespace. |
+| `pendo: … rejected the API key (HTTP 401 …)` | Wrong Application API key, or the endpoint doesn't match the region. |
+| No delivery warnings and nothing in Pendo | Aggregation lag (about an hour), or `agentId` matches no agent in the app (accepted, then dropped silently). Prove events leave the process with a local sink. |
+| `pendo: tool call "…" has no visitor configured or resolved; recording visitorId as "anonymous"` | Advisory, once per process: events are attributed to visitor `anonymous`. Set `visitorId` or a `visitorIdResolver` to attribute them to real users. |
+| `NoSuchMethodError` / `ClassNotFoundException` in `io.modelcontextprotocol` at startup | Wrong generation module; re-check `dependency:tree` and swap `pendo-sdk-mcp` ↔ `pendo-sdk-mcp-0x`. |
+| Server build fails on a duplicate tool `get_additional_tools` | Tools were wrapped in two batches; see the "exactly once" rule. |
+| The host's tool calls are rejected as invalid arguments | 2.x validation plus required `user_intent`: fix the host, or `validateToolInputs(false)`. |
+| Empty conversation ids / a one-time warning naming 2026-12-01 | No session id (stdio, or the client sends none); use Streamable HTTP with session ids. |
+| Last events of a run missing | The process exited before the hook drained; `pendo.close()` before exit, or a larger `shutdownTimeout`. |
+
+---
+
 ## What the instrumentation does (explain to the user)
 
-Across all three SDKs, the wrapper intercepts the MCP request handlers:
+Across all four SDKs, tool calls are intercepted and recorded:
 
-- **`tools/list`** — injects a required `user_intent` (Python/TS) or
-  `userQuery` (Go) string parameter into every tool schema, so the AI client
-  explains why it's calling. Tool schemas are otherwise unchanged.
+- **`tools/list`** — Python, TypeScript and Java inject a required
+  `user_intent` string parameter into every tool schema (Go reads a
+  `userQuery` argument instead), so the AI client explains why it's calling.
+  Tool schemas are otherwise unchanged.
 - **`tools/call`** — times the call, strips the injected parameter before
   the real handler runs, and emits `prompt` / `tool_request` /
   `tool_response` / `agent_response` events. Handler behavior is untouched.
-- Python/TS also advertise a virtual `get_additional_tools` tool that
-  records capability gaps as `missing_capability` events (not currently
-  present in the Go SDK).
+- Python, TypeScript and Java also advertise a virtual `get_additional_tools`
+  tool that records capability gaps as `missing_capability` events (not
+  currently present in the Go SDK).
 
-Because instrumentation wraps the request-handler layer, tools registered
-after the wrapper is constructed are instrumented too, in all three SDKs.
+Where the hook sits differs. Python, TypeScript and Go wrap the
+request-handler layer, so tools registered after the wrapper is constructed
+are instrumented too. Java wraps each tool *specification* (the MCP Java SDK
+has no `tools/list` hook), so a tool must go through `wrap` / `wrapAll` to be
+seen — including tools added later with `addTool`.

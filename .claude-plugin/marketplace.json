@@ -20,7 +20,7 @@
     {
       "name": "setup-mcp-agent-analytics",
       "source": "./plugins/setup-mcp-agent-analytics/",
-      "description": "Detect an MCP server's language (Python, TypeScript, or Go) and instrument it with the matching Pendo SDK for MCP analytics"
+      "description": "Detect an MCP server's language (Python, TypeScript, Go, or Java) and instrument it with the matching Pendo SDK for MCP analytics"
     },
     {
       "name": "pendo-guides",
