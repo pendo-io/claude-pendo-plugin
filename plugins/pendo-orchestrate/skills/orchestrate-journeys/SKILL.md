@@ -1,6 +1,6 @@
 ---
 name: orchestrate-journeys
-description: Create, configure, and edit Orchestrate email journeys via MCP — audience, schedule, goal, multi-step sequences, and email content. Use for welcome or onboarding sequences, re-engagement or win-back, create or update a journey, or prepare to go live. For opens, clicks, or journey metrics, use Orchestrate metrics MCP tools directly — not this skill's reference workflow.
+description: Create, configure, and edit Orchestrate email journeys via MCP — audience, schedule, goal, multi-step sequences, and email content. Use for welcome or onboarding sequences, re-engagement or win-back, create or update a journey, or prepare to go live. For opens, clicks, journey metrics, reach, outcomes or a journey health check, use the orchestrate-insights skill — not this skill's reference workflow.
 ---
 # Orchestrate Journeys
 
@@ -93,5 +93,5 @@ request are normal — chain references in order (e.g. configure → content →
 | **Change journey structure** on an existing journey (steps, waits, splits) | Scan your MCP tools for one whose **description** says it can **add, remove, or change journey steps, wait durations, or conditional splits** on an **existing** journey (not create, not email HTML). Read `WithWorkflow` and `NotFor` on each candidate. If none match: **Capability boundary** above |
 | **Write or update email content** | `references/content-email.md` |
 | **Go live / activate / what's left before sending** | `references/handoff.md` |
-| **Journey performance** (opens, clicks, metrics) | No reference file. Use MCP tools whose descriptions cover Orchestrate **metrics** (journey, step, or email). Resolve `journeyId` via `references/identify-journey.md` if needed. Do not run intake or configuration for reporting-only questions. |
+| **Journey performance** (opens, clicks, metrics, who didn't get it, did it work, is it healthy) | Use the `orchestrate-insights` skill (read-only). Resolve `journeyId` via `references/identify-journey.md` if needed. Do not run intake or configuration for reporting-only questions. |
 | Agent anti-patterns, failures, wrong ids | `references/troubleshooting.md` |

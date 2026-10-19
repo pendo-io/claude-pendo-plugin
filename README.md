@@ -12,7 +12,7 @@ This marketplace contains five plugins:
 | `setup-agent-analytics` | Detect AI agents in your codebase and instrument them with Pendo agent analytics |
 | `setup-mcp-agent-analytics` | Detect an MCP server's language (Python, TypeScript, Go, or Java) and instrument it with the matching Pendo SDK for MCP analytics |
 | `pendo-guides` | Create production-ready Pendo in-app guides (walkthroughs, announcements, alerts, polls, promotions) as HTML/CSS/JS from a short intake conversation, and review guide signals to mute, deactivate, or archive stale guides |
-| `pendo-orchestrate` | Create, configure, and edit draft Orchestrate email journeys via Pendo MCP — multi-email journeys, conditional splits, and email content; activation in Orchestrate UI |
+| `pendo-orchestrate` | Create, configure, and edit draft Orchestrate email journeys via Pendo MCP — multi-email journeys, conditional splits, and email content; activation in Orchestrate UI. Read-only insights on how journeys and emails are doing |
 
 ## Quickstart
 
@@ -61,6 +61,7 @@ This marketplace contains five plugins:
    **pendo-orchestrate:**
    ```
    /pendo-orchestrate:orchestrate-journeys
+   /pendo-orchestrate:orchestrate-insights
    ```
 
 ### Option B: Manual Installation
@@ -109,6 +110,7 @@ This marketplace contains five plugins:
    **pendo-orchestrate:**
    ```
    /pendo-orchestrate:orchestrate-journeys
+   /pendo-orchestrate:orchestrate-insights
    ```
 
 ## Components
@@ -148,6 +150,7 @@ This marketplace contains five plugins:
 | Skill | Description |
 |:------|:------------|
 | `orchestrate-journeys` | Lifecycle skill for draft Orchestrate journeys: intake, create, configure audience/schedule/goal, write email HTML, and hand off for activation in the Orchestrate UI |
+| `orchestrate-insights` | Read-only answers on how journeys and emails are doing: journey checkup, why fewer people got a message, whether a journey changed behaviour (with its evidence level), program reports and slides, message load |
 
 ### MCP Servers
 
