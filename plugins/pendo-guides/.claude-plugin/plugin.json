@@ -1,8 +1,8 @@
 {
   "name": "pendo-guides",
   "displayName": "Pendo Guides",
-  "version": "1.3.0",
-  "description": "Create production-ready Pendo in-app guides (walkthroughs, announcements, alerts, polls, promotions) as HTML/CSS/JS from a short intake conversation",
+  "version": "1.4.0",
+  "description": "Create production-ready Pendo in-app guides (walkthroughs, announcements, alerts, polls, promotions) as HTML/CSS/JS from a short intake conversation, and review guide signals to mute, deactivate, or archive stale guides",
   "author": {
     "name": "Pendo",
     "email": "plugins@pendo.io"
@@ -10,7 +10,7 @@
   "homepage": "https://github.com/pendo-io/claude-pendo-plugin",
   "repository": "https://github.com/pendo-io/claude-pendo-plugin",
   "license": "MIT",
-  "keywords": ["pendo", "guides", "in-app", "onboarding", "product-management"],
+  "keywords": ["pendo", "guides", "in-app", "onboarding", "product-management", "guide-management"],
   "mcpServers": {
     "pendo-external": {
       "type": "http",

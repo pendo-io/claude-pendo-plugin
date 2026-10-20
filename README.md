@@ -11,7 +11,7 @@ This marketplace contains five plugins:
 | `pendo-analytics` | Pendo analytics skills for account health, app health, feature adoption, session replays, feedback analysis, and data-informed planning |
 | `setup-agent-analytics` | Detect AI agents in your codebase and instrument them with Pendo agent analytics |
 | `setup-mcp-agent-analytics` | Detect an MCP server's language (Python, TypeScript, Go, or Java) and instrument it with the matching Pendo SDK for MCP analytics |
-| `pendo-guides` | Create production-ready Pendo in-app guides (walkthroughs, announcements, alerts, polls, promotions) as HTML/CSS/JS from a short intake conversation |
+| `pendo-guides` | Create production-ready Pendo in-app guides (walkthroughs, announcements, alerts, polls, promotions) as HTML/CSS/JS from a short intake conversation, and review guide signals to mute, deactivate, or archive stale guides |
 | `pendo-orchestrate` | Create, configure, and edit draft Orchestrate email journeys via Pendo MCP — multi-email journeys, conditional splits, and email content; activation in Orchestrate UI |
 
 ## Quickstart
@@ -56,6 +56,7 @@ This marketplace contains five plugins:
    **pendo-guides:**
    ```
    /pendo-guides:pendo-guide-creator
+   /pendo-guides:guide-management
    ```
 
    **pendo-orchestrate:**
@@ -104,6 +105,7 @@ This marketplace contains five plugins:
    **pendo-guides:**
    ```
    /pendo-guides:pendo-guide-creator
+   /pendo-guides:guide-management
    ```
 
    **pendo-orchestrate:**
@@ -142,6 +144,7 @@ This marketplace contains five plugins:
 | Skill | Description |
 |:------|:------------|
 | `pendo-guide-creator` | Runs a short intake conversation, then generates production-ready Pendo in-app guides (walkthroughs, announcements, alerts, polls, promotions) as standalone HTML/CSS/JS files with wired button actions and `<pendo-poll>` data collection |
+| `guide-management` | Review the weekly Guide Signals for an app — archive, deactivate, and anomaly recommendations with their evidence and as-of date — then mute a signal or deactivate/archive the guide on your explicit choice |
 
 ### pendo-orchestrate skills
 
