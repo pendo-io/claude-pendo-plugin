@@ -14,13 +14,14 @@ every email we sent in a month, with totals".
 1. Page `listOrchestrateJourneys` until a short page.
 2. Page `listOrchestrateEmails` until a short page.
 3. Split journey emails from standalone emails with `getOrchestrateEmail.attributes.journeyId`.
-4. For **every email that sent in the period**, journey and standalone alike, call `getOrchestrateEmailMetrics`.
-   It counts by event date. Journey step metrics count people by when they *entered*, so they miss sends in
+4. For **every email that sent in the period**, journey and standalone alike, call `getOrchestrateEmailMetrics`
+   **twice**: once in the default scope for sent, delivered and bounced, and once with
+   `metricsScope=emailsDeliveredInPeriod` for opened, clicked and their rates. Both count by event date. Journey step metrics count people by when they *entered*, so they miss sends in
    the period to people who entered earlier. Don't use them for period totals.
 5. Guide steps: `getOrchestrateJourneyStepMetrics`. Label those counts as "people who entered in the period".
 6. Per active journey: `getOrchestrateJourneyMetrics` with no range, for the cumulative goal. Name its rule.
 
-**Call budget: at most 40 Pendo calls.** Say it at the start.
+**Call budget: at most 40 Pendo calls** (two for each email). Say it at the start.
 - When it runs out, report the coverage you reached: "covers 18 of 31 journeys, ranked by sends".
 - Never present partial coverage as the whole.
 - Cover the largest objects first: rank by sends from the listings and the cheapest metric call.
