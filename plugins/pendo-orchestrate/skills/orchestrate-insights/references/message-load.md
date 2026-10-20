@@ -12,13 +12,16 @@ Answers "are we over-messaging people?" and "how many messages does a person get
   from `getOrchestrateVisitorJourneyState`.
 - **Throttling, can't read:** the subscription's throttle switch and caps.
 
-## Method (a labelled sample; budget about 30 calls)
+## Method (a labelled sample; budget about 35 calls)
 
 1. List the journeys and standalone emails that sent in the window. Reuse `program-report`'s listing.
 2. Pick the people to check:
    - Take recipients from the largest sends with `getOrchestrateJourneyStepVisitors` or
      `getOrchestrateEmailVisitors` (`eventType=delivered`).
-   - Draw a random subset of 50 to 100 from the returned rows.
+   - Draw a random subset of **15 to 20** from the returned rows. That keeps the run inside the budget: one call
+     per person plus the listing and outlier reads.
+   - Where you can run code, count instead how many of the top emails each recipient appears in, from each
+     email's delivered rows (one call per email). That covers everyone in those emails, not a sample.
    - Rows are sorted by visitor ID. If the list was cut, say the subset comes from the first rows only.
 3. For each person in the subset, call `getOrchestrateVisitorEmails` over the window.
 4. Report the distribution in the sample: share of people with 1, 2–3, 4–6 and 7 or more emails.

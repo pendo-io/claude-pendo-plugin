@@ -43,10 +43,12 @@ Use two lists, never mixed.
 - People whose wait ends after the schedule end: they will never reach the step.
 - People already marked completed (`completed=true`) before the step, whether by an exit step or a required goal.
 - Bounces, from step metrics. A bounce happens after a send, so it never explains a missing send.
-- **People with no email address.** Count them (contract: *People with no email address*).
-- **Inactive for over 12 months** when `reachInactiveVisitors` is false. Count them on the audience segment
-  with `buildPendoSegment` (last visit more than 365 days before the journey started) and `listVisitors`.
-  Label the count as matched from today's data.
+**Matched on today's audience** (supporting evidence for a possible cause, not a count of entrants):
+- **No email address.** "N of today's audience have no email address" (contract: *People with no email address*).
+- **Inactive for over 12 months,** when `reachInactiveVisitors` is false. Use `buildPendoSegment` for a last
+  visit more than 365 days before the journey started, then `listVisitors`.
+- Say plainly that today's audience isn't the entrant cohort. If it has clearly changed (new entries since,
+  or a rule on recent activity), give the number as an indication only.
 
 **Possible causes** (not counted; label each one and name the check that would confirm it):
 - **Left the entry segment.** Possible when `retainVisitorsAfterEntry=false` and the rule is one people leave by

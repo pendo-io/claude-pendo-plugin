@@ -12,9 +12,14 @@ return it, you do not know it.
 `references/read-contract.md`. It says what each number means, where lists stop, and which methods work.
 Tool descriptions are the source of truth for parameters; the contract is the source of truth for meaning.
 
-**Critical rule — identify before reading:** Resolve `subId`, `appId` and `journeyId` (or `emailId`) the same
-way `orchestrate-journeys` does: `listAllApplications`, then `listOrchestrateJourneys` (no name filter; match by
-name and `appId`). Zero or two or more matches: stop and ask. Never pick the first result.
+**Critical rule — identify before reading:** Follow `../orchestrate-journeys/references/identify-journey.md` for
+`subId` and `appId`: call `listAllApplications`. If zero or two or more subscription and app pairs match, stop and
+ask. App ids aren't unique across subscriptions.
+- **A journey:** page `listOrchestrateJourneys` (no name filter) and match by name and `appId`.
+- **An email:** use `listOrchestrateEmails` with its `name` filter (it matches name or subject, standalone and
+  journey emails). Page it, and keep rows on the resolved `appId`.
+
+Zero or two or more matches: stop, list the candidates (id, name, status) and ask. Never pick the first result.
 
 **Read-only:** never call a create, set, update or delete tool from this skill. When a finding needs a change,
 draft the change and hand off to `orchestrate-journeys`, which has its own confirmation rules.
@@ -60,11 +65,10 @@ an item silently. These items are what makes the answer trustworthy, so do the r
 **Reach**
 - The step-by-step count: entered, reached the step, sent, delivered.
 - Never sent.
-- **Counted causes:**
-  - people with no email address;
-  - people inactive for more than 12 months (when the journey doesn't reach inactive visitors);
-  - people still waiting;
-  - people who completed early.
+- **Counted causes:** people still waiting, people who completed early, and people who can't reach the step
+  before the schedule ends.
+- **Matched on today's audience,** labelled as such: no email address, and inactive for more than 12 months
+  (when the journey doesn't reach inactive visitors).
 - Possible causes, each labelled with its test.
 - For timing questions: the configured wait, and **sends a day against entries a day** for the first days.
 

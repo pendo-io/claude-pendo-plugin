@@ -82,8 +82,8 @@ recommend rewiring it. Say where people actually went, using `stepVisits` from `
 
 **`metricsScope`** on email metrics:
 - `allActivityInPeriod` (default) counts any activity in the range, including on emails delivered earlier.
-- `emailsDeliveredInPeriod` counts only people who were delivered the email in the range. In this scope sent
-  equals delivered and bounces don't appear.
+- `emailsDeliveredInPeriod` counts only people who were delivered the email in the range. Its sent and
+  bounced counts are limited to those people, so they understate the period's sends and bounces.
 - So use **two calls**: take sent, delivered and bounced from the default scope, and take opened, clicked and
   their rates from `emailsDeliveredInPeriod` (that stops open and click rates going over 100%). Never report sent
   or bounced from `emailsDeliveredInPeriod`.
@@ -125,7 +125,10 @@ Never say "there's no usage data for X" until you've searched every app and chec
 - Find the email field with `visitorMetadataSchema` (often `visitor.agent.email`).
 - Call `listVisitors` on the audience segment with `groupByMetadata` set to that field, `limit` 5. The
   "(none)" group is the count.
-- This is today's segment, not the audience at entry. Say so. For a one-time send it's usually close.
+- This counts **today's audience**, not the journey's entrants. It can include people who never entered and
+  miss entrants who have since left. So it is supporting evidence for a *possible* cause, never a count of the
+  entered-but-not-sent gap. Report it as "N of today's audience have no email address".
+- The same applies to any count built on today's audience segment, such as inactivity.
 
 **How long until a message is sent** (send lag):
 - The configured wait is the sum of the step waits on the path.
