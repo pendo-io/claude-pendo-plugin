@@ -25,7 +25,7 @@
     {
       "name": "pendo-guides",
       "source": "./plugins/pendo-guides/",
-      "description": "Create production-ready Pendo in-app guides (walkthroughs, announcements, alerts, polls, promotions) as HTML/CSS/JS from a short intake conversation"
+      "description": "Create production-ready Pendo in-app guides (walkthroughs, announcements, alerts, polls, promotions) as HTML/CSS/JS from a short intake conversation, and review guide signals to mute, deactivate, or archive stale guides"
     },
     {
       "name": "pendo-orchestrate",
