@@ -143,8 +143,6 @@ This marketplace contains five plugins:
 | `pendo-guide-creator` | Runs a short intake conversation, then generates production-ready Pendo in-app guides (walkthroughs, announcements, alerts, polls, promotions) as standalone HTML/CSS/JS files with wired button actions and `<pendo-poll>` data collection |
 | `guide-management` | Review the weekly Guide Signals for an app — archive, deactivate, and anomaly recommendations with their evidence and as-of date — then mute a signal or deactivate/archive the guide on your explicit choice |
 
-> **Limited availability:** `guide-management` depends on the Guide Signals feature, which is gated behind a subscription flag. If Guide Signals isn't enabled for your subscription, the skill's signal tools won't be available. Contact your Pendo representative to enable it.
-
 ### pendo-orchestrate skills
 
 | Skill | Description |
