@@ -1,7 +1,7 @@
 # Journey checkup
 
-Answers "is this journey set up and behaving the way it was meant to?". Use it before activation (called from
-`orchestrate-journeys` handoff) and for a live journey.
+Answers "is this journey set up and behaving the way it was meant to?". Use it when the user asks for a health
+check, before activation or for a live journey.
 
 ## Reads (budget: about 15 calls)
 
