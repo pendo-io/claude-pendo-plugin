@@ -87,23 +87,21 @@ When the user provides a theme preference in question 5, resolve it as follows:
 | Image | Accept the uploaded image. Extract visual cues (colors, spacing, typography, layout) and replicate them in the guide CSS. |
 | CSS stylesheet | Read the file or pasted content. Extract relevant properties (colors, fonts, spacing, border-radius) and apply to guide output. |
 | Hex colors / font preferences | Apply the provided values directly to the guide's `<style>` block. |
-| Pendo theme name | Call `listThemes` on the `user-pendo` MCP server with `search: "<name>"` and the user's `subId`. Extract the `buildingBlocks` object and map its properties to guide CSS (font family, colors, button styles, border-radius, padding). |
+| Pendo theme name | Call `listThemes` on the `pendo-external` MCP server with `search: "<name>"` and the user's `subId`. Extract the `buildingBlocks` object and map its properties to guide CSS (font family, colors, button styles, border-radius, padding). |
 | Select from list | Call `listThemes` (no `search` param) to retrieve all available themes. Present the theme names to the user for selection, then resolve as "Pendo theme name" above. |
 
-**MCP server availability:** Before attempting any Pendo theme lookup, check whether the
-`user-pendo` MCP server is available by calling `GetMcpTools` with `server: "user-pendo"`.
-If the server's `serverStatus` is not `"ready"` (e.g. it is missing, in `"error"`, or
-`"needsAuth"` state), do NOT silently fall back to a different approach. Instead, inform the
-user that the Pendo MCP server is not configured or not connected, and ask if they'd like to:
-- Set up the Pendo MCP server by following the steps at
+**MCP server availability:** Pendo theme lookup requires the `pendo-external` MCP server's tools
+(e.g. `listThemes`). If those tools are not available or a call fails because the server is not
+authenticated, do NOT silently fall back to a different approach. Instead, inform the user that the
+Pendo MCP server is not configured or not connected, and ask if they'd like to:
+- Connect the Pendo MCP server by running `/mcp` in Claude Code and completing the authentication
+  flow, or follow the steps at
   https://support.pendo.io/hc/en-us/articles/41102236924955-Connect-to-the-Pendo-MCP-server
 - Provide the theme details another way (image, CSS, hex colors, etc.)
 
-If the server requires authentication (`"needsAuth"`), call `mcp_auth` for the server and retry.
-
 **Subscription ID resolution:** If the Pendo MCP server is available and a theme lookup is needed,
 ask the user which subscription the theme lives in. If they know the subscription name or ID, use
-it directly. If they don't know, call `list_all_applications` on the `user-pendo` MCP server to
+it directly. If they don't know, call `list_all_applications` on the `pendo-external` MCP server to
 retrieve all subscriptions they have access to, then search each subscription for the theme until
 a match is found.
 
@@ -216,18 +214,18 @@ the loop until the user is satisfied. Never treat the first output as final.
 ## Step 5 — Offer to Send the Guide to Pendo
 
 After a guide has been created (and after each revision), offer to push it into Pendo as a draft guide.
-Whether you can do this depends on the `user-pendo` MCP server being connected.
+Whether you can do this depends on the `pendo-external` MCP server being connected.
 
-**First, check MCP server connectivity.** Call `GetMcpTools` with `server: "user-pendo"` and inspect
-`serverStatus`.
+**First, check MCP server connectivity.** Confirm the `pendo-external` MCP server's tools (e.g.
+`createGuideFromHtml`) are available before offering to send.
 
-### If the server is connected (`serverStatus: "ready"`)
+### If the server is connected
 
 Let the user know the guide can be sent to Pendo directly. Phrase it as an invitation, e.g.:
 
 > "If this guide looks good, I can send it to Pendo for you as a draft — just say the word."
 
-If the user confirms, create the draft guide with `createGuideFromHtml` on the `user-pendo` MCP server:
+If the user confirms, create the draft guide with `createGuideFromHtml` on the `pendo-external` MCP server:
 - Pass each step's full HTML as an entry in the `rawHtmls` array (one entry per step, in order).
 - Resolve `subId` and `appId` first — reuse the subscription already identified during theme resolution
   if available. Otherwise ask which subscription and web application the guide should be created in,
@@ -237,9 +235,10 @@ If the user confirms, create the draft guide with `createGuideFromHtml` on the `
   modal/lightbox guides or `"embedded"` for inline guides.
 - After creation, share the returned guide URL so the user can open and finish it in Pendo.
 
-If the server requires authentication (`"needsAuth"`), call `mcp_auth` for the server and retry.
+If a `createGuideFromHtml` call fails because the server is not authenticated, tell the user to run
+`/mcp` in Claude Code to authenticate the Pendo MCP server, then retry.
 
-### If the server is not connected (not `"ready"`)
+### If the server is not connected
 
 Do not attempt to send the guide. Instead, let the user know that connecting the Pendo MCP server would
 let you send the guide to Pendo for them, e.g.:

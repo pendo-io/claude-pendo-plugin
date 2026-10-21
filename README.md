@@ -38,7 +38,6 @@ This marketplace contains five plugins:
    /pendo-analytics:account-health <account-name>
    /pendo-analytics:feature-adoption <feature-name>
    /pendo-analytics:feedback-analysis
-   /pendo-analytics:session-replay
    /pendo-analytics:data-informed-planning <planning question>
    /pendo-analytics:replay-triage <ticket ID or replay-url>
    ```
@@ -87,7 +86,6 @@ This marketplace contains five plugins:
    /pendo-analytics:account-health <account-name>
    /pendo-analytics:feature-adoption <feature-name>
    /pendo-analytics:feedback-analysis
-   /pendo-analytics:session-replay
    /pendo-analytics:data-informed-planning <planning question>
    /pendo-analytics:replay-triage <ticket ID or replay-url>
    ```
@@ -123,7 +121,6 @@ This marketplace contains five plugins:
 | `account-health` | Prepare for a customer call by synthesizing engagement, sentiment, and feedback from Pendo analytics |
 | `feature-adoption` | Analyze feature adoption rates, identify power users vs laggards, and track adoption trends |
 | `feedback-analysis` | Deep analysis of customer feedback - discover themes, extract insights, and identify risks |
-| `session-replay` | Find and surface relevant session replays for debugging, UX research, and understanding user behavior |
 | `data-informed-planning` | Ground a planning task in real product data — gathers signals, issues, wiki, customer feedback, PES/NPS, segments, and session replays from Novus + Pendo, then delegates to `/superpowers:writing-plans` |
 | `replay-triage` | Triage errors from a session replay — pull devlogs, locate the bug in the codebase, propose a fix, and prompt for a PR |
 
