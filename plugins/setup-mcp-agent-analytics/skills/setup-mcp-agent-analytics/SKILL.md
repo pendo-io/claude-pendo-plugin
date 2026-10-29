@@ -455,41 +455,60 @@ the other languages don't:
 mvn -q dependency:tree -Dincludes=io.modelcontextprotocol.sdk   # or: gradle dependencies | grep modelcontextprotocol
 ```
 
-| Resolved `io.modelcontextprotocol.sdk:mcp*` | Typical source | Module |
-|---|---|---|
-| 1.0 or later (2.x today) | direct dependency; Spring AI 2.x / Spring Boot 4 | `io.pendo:pendo-sdk-mcp` |
-| 0.x (0.18.x) | Spring AI 1.x / Spring Boot 3.5 | `io.pendo:pendo-sdk-mcp-0x` |
+| Resolved `io.modelcontextprotocol.sdk:mcp*` | Typical source | Module | Spring AI application |
+|---|---|---|---|
+| 1.0 or later (2.x today) | direct dependency; Spring AI 2.x / Spring Boot 4 | `io.pendo:pendo-sdk-mcp` | `io.pendo:pendo-sdk-spring-ai` |
+| 0.x (0.18.x) | Spring AI 1.x / Spring Boot 3.5 | `io.pendo:pendo-sdk-mcp-0x` | `io.pendo:pendo-sdk-spring-ai-0x` |
 
-Same package (`io.pendo.sdk.mcp`), same API; only the artifact differs. Name
-the module in the one-line confirmation (Phase 0).
+Same package (`io.pendo.sdk.mcp`), same API; only the artifact differs. A
+Spring AI application takes the starter of its generation instead of the
+adapter: the starter wraps every tool the application exposes and adds
+`get_additional_tools` itself, so "Wire it in" below does not apply to it.
+Name the module in the one-line confirmation (Phase 0).
 
 ### Install
 
 Add exactly one module (tell the user; don't run the build yourself unless
-asked). Until the SDK is on Maven Central it is served from Pendo's preview
-Maven repository, so the build needs the repository block as well as the
-dependency; once it is on Central, the block goes away. Pin the exact preview
-number. `pendo-sdk-core` arrives transitively; the MCP SDK is `provided`, so
-the customer's own version is the one used.
+asked). The SDK is published to Pendo's Maven repository on JFrog,
+`https://pendo.jfrog.io/artifactory/pendo-sdk-release`, not to Maven Central,
+so the build needs the repository entry as well as the dependency, and the
+entry stays. Put it in the build that resolves the dependency (with Gradle
+that may be `settings.gradle(.kts)` when `dependencyResolutionManagement`
+is in use) and, where the build tool allows, scope it to the `io.pendo` group
+so nothing else is looked up there. Pin the exact release (`0.1.0` is the
+first). `pendo-sdk-core` arrives transitively; the MCP SDK is `provided`, so
+the customer's own version is the one used. The sibling `pendo-sdk-snapshot`
+repository holds pre-release builds for trying a fix before it ships; never
+pin a customer build to a snapshot.
 
 ```xml
 <repositories>
   <repository>
-    <id>pendo-preview</id>
-    <url>https://storage.googleapis.com/pendo-sdk-maven/</url>
+    <id>pendo-sdk-release</id>
+    <url>https://pendo.jfrog.io/artifactory/pendo-sdk-release</url>
+    <snapshots><enabled>false</enabled></snapshots>
   </repository>
 </repositories>
 
 <dependency>
   <groupId>io.pendo</groupId>
   <artifactId>pendo-sdk-mcp</artifactId>   <!-- pendo-sdk-mcp-0x for the 0.x generation -->
-  <version>0.1.0-preview.1</version>
+  <version>0.1.0</version>
 </dependency>
 ```
 
 ```kotlin
-repositories { maven { url = uri("https://storage.googleapis.com/pendo-sdk-maven/") } }
-implementation("io.pendo:pendo-sdk-mcp:0.1.0-preview.1")   // pendo-sdk-mcp-0x for the 0.x generation
+repositories {
+    mavenCentral()
+    exclusiveContent {
+        forRepository { maven { url = uri("https://pendo.jfrog.io/artifactory/pendo-sdk-release") } }
+        filter { includeGroup("io.pendo") }
+    }
+}
+
+dependencies {
+    implementation("io.pendo:pendo-sdk-mcp:0.1.0")   // pendo-sdk-mcp-0x for the 0.x generation
+}
 ```
 
 ### Wire it in
@@ -610,7 +629,7 @@ Rules that matter:
 
 | Check | What to look for |
 |-------|-------------------|
-| `Could not find artifact io.pendo:…` at build time | The preview repository block is missing from the build that resolves the dependency, or a proxy blocks `storage.googleapis.com`. |
+| `Could not find artifact io.pendo:…` at build time | The `pendo-sdk-release` repository entry is missing from the build that resolves the dependency (Gradle: the module's `repositories {}`, or `settings.gradle(.kts)` when `dependencyResolutionManagement` owns them), a Gradle content filter excludes `io.pendo`, or a proxy blocks `pendo.jfrog.io`. |
 | `IllegalArgumentException: apiKey is required` / `agentId is required` | `PendoConfig.build()` validates its options; both are required, and the key must contain no whitespace. |
 | `pendo: … rejected the API key (HTTP 401 …)` | Wrong Application API key, or the endpoint doesn't match the region. |
 | No delivery warnings and nothing in Pendo | Aggregation lag (about an hour), or `agentId` matches no agent in the app (accepted, then dropped silently). Prove events leave the process with a local sink. |
