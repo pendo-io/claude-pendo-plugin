@@ -89,7 +89,7 @@ request are normal — chain references in order (e.g. configure → content →
 | User intent | Read |
 | ----------- | ---- |
 | **Create** a new journey | `references/intake.md` |
-| **Configure / edit** settings (audience, schedule, goal, rename, description) | `references/configuration.md` |
+| **Configure / edit** settings (audience, conditional split criteria, schedule, goal, rename, description) | `references/configuration.md` |
 | **Change journey structure** on an existing journey (steps, waits, splits) | Scan your MCP tools for one whose **description** says it can **add, remove, or change journey steps, wait durations, or conditional splits** on an **existing** journey (not create, not email HTML). Read `WithWorkflow` and `NotFor` on each candidate. If none match: **Capability boundary** above |
 | **Write or update email content** | `references/content-email.md` |
 | **Go live / activate / what's left before sending** | `references/handoff.md` |
