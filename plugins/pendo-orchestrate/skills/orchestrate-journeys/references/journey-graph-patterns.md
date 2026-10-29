@@ -56,5 +56,6 @@ Start -> [Introduction] -> (conditional split) --Yes--> [Power-user tips] -> Exi
                                   --No--> [Getting started guide] -> Exit
 ```
 
-Split has **no wait**. Split **topology** is set at create; the Yes/No **condition** is configured in
-Orchestrate UI — see create tool descriptions and **Capability boundary** in `SKILL.md`.
+Split has **no wait**. Split **topology** is set at create; Yes/No **criteria** are not `templateJson`. After
+create, set **Yes** criteria (saved segment) with **`setOrchestrateJourneyConditionNodeRule`** — full workflow in
+`references/configuration.md`. Compound or custom split rules — Orchestrate UI only.

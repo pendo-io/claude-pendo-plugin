@@ -1,6 +1,6 @@
 # Configure journey settings
 
-Use when the user wants audience, schedule, goal, rename, or description changes on an existing journey
+Use when the user wants audience, conditional split criteria, schedule, goal, rename, or description changes on an existing journey
 (`references/identify-journey.md` first).
 
 Only run steps the user asked for (or explicitly confirms now). Follow each set tool's workflow in its MCP
@@ -41,6 +41,27 @@ If the user wants a **new saved segment** and `buildPendoSegment` / `createSegme
 
 If those tools are not on your tool list, say you have no MCP tool to create segments — user can create one in
 Pendo and retry with the segment name.
+
+---
+
+## Conditional split Yes criteria — `setOrchestrateJourneyConditionNodeRule`
+
+**Not** journey entry audience (`setOrchestrateJourneySegment` above). Sets who follows the **Yes** branch on an
+existing conditional split.
+
+Follow `setOrchestrateJourneyConditionNodeRule`'s **`WithWorkflow`** in its MCP description.
+
+In practice:
+
+1. `references/identify-journey.md` — resolve `journeyId` (and `subId` / `appId` if needed).
+2. **`getOrchestrateJourneySteps`** — `stepId` where **`stepType` is `condition`**. If several splits exist and
+   the target is unclear, STOP and ask which split.
+3. **Set saved-segment criteria:** resolve `segmentId` with **`segmentList`** (steps 2–3 under **Audience**
+   above), then **`setOrchestrateJourneyConditionNodeRule`** with `journeyId`, `stepId`, and `segmentId`.
+4. **Clear criteria:** **`setOrchestrateJourneyConditionNodeRule`** with `clearCriteria: true` only — do not
+   pass `segmentId` or call `segmentList`.
+
+Custom or compound split rules (not one saved segment) remain **Orchestrate UI only**.
 
 ---
 
