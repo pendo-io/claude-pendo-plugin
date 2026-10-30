@@ -10,7 +10,7 @@ This marketplace contains five plugins:
 |:-------|:------------|
 | `pendo-analytics` | Pendo analytics skills for account health, app health, feature adoption, session replays, feedback analysis, and data-informed planning |
 | `setup-agent-analytics` | Detect AI agents in your codebase and instrument them with Pendo agent analytics |
-| `setup-mcp-agent-analytics` | Detect an MCP server's language (Python, TypeScript, Go, or Java) and instrument it with the matching Pendo SDK for MCP analytics |
+| `setup-mcp-agent-analytics` | Detect an MCP server's language (Python, TypeScript, Go, Java, or .NET) and instrument it with the matching Pendo SDK for MCP analytics |
 | `pendo-guides` | Create production-ready Pendo in-app guides (walkthroughs, announcements, alerts, polls, promotions) as HTML/CSS/JS from a short intake conversation, and review guide signals to mute, deactivate, or archive stale guides |
 | `pendo-orchestrate` | Create, configure, and edit draft Orchestrate email journeys via Pendo MCP — multi-email journeys, conditional splits, and email content; activation in Orchestrate UI |
 
@@ -134,7 +134,7 @@ This marketplace contains five plugins:
 
 | Skill | Description |
 |:------|:------------|
-| `setup-mcp-agent-analytics` | Detect an MCP server's language (Python, TypeScript, Go, or Java) and instrument it with the matching Pendo SDK (`PendoMCPServer`, `initMcp()`, `gosdk.Instrument()`, or `PendoMcpServer.wrapAll()`) |
+| `setup-mcp-agent-analytics` | Detect an MCP server's language (Python, TypeScript, Go, Java, or .NET) and instrument it with the matching Pendo SDK (`PendoMCPServer`, `initMcp()`, `gosdk.Instrument()`, `PendoMcpServer.wrapAll()`, or `WithPendoAgentAnalytics()`) |
 
 ### pendo-guides skills
 
