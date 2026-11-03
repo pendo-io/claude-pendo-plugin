@@ -669,14 +669,14 @@ the SDK needs 2.3.0 or later.
 
 Add the one package (tell the user; don't run the build yourself unless
 asked). It is published to nuget.org, so no extra package source is needed.
-Pin the exact release (`2.0.0` is the first: the version carries the major of
-the contract the SDK implements). `Pendo.AgentAnalytics` arrives transitively,
-and the customer's own `ModelContextProtocol` package is the one used. A
+Pin the exact release (`0.1.0` is the first release; the version is this SDK's
+own). `Pendo.AgentAnalytics` arrives transitively, and the customer's own
+`ModelContextProtocol` package is the one used. A
 pre-release build, when one is offered for trying a fix, needs `--prerelease`
 and its exact version; never pin a customer build to one.
 
 ```bash
-dotnet add package Pendo.AgentAnalytics.Mcp --version 2.0.0
+dotnet add package Pendo.AgentAnalytics.Mcp --version 0.1.0
 ```
 
 ### Wire it in
