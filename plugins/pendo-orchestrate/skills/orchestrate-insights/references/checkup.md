@@ -13,6 +13,9 @@ check, before activation or for a live journey.
 4. `getSegment` on the entry segment, for its rule text.
 5. `entityUsage` on the goal item over the live dates, with no visitor filter.
 6. `getOrchestrateEmail` for each email step, only when a check below needs its name or settings.
+7. For check 3 on a live journey: `getOrchestrateJourneyVisitors` with `enrollmentFilter=all` and `limit` up to
+   5,000, for entry dates and where people are now. If the list is cut, give the count for the rows you have and
+   say it covers only part of the journey.
 
 ## Checks
 
@@ -32,7 +35,7 @@ Report each check as **Pass**, **Warning** or **Needs a fix**, with the evidence
 | 10 | **Opens and clicks recorded** | Opens under 5% of delivered while clicks are normal (opens not recorded), or clicks above opens (scanner signature) |
 | 11 | **Unsubscribes trending** | Unsubscribe rate rising across weekly windows. Give the rates |
 | 12 | **Throttling** | Say whether the journey ignores throttling. The subscription setting can't be read |
-| 13 | **Everyone entered is sent something** | Entered minus sent on the first email step. If the gap is large, run the reach diagnosis for it, or offer to |
+| 13 | **Everyone entered is sent something** | Entered minus sent on the first email step. If the gap is large, run the reach diagnosis for it, or offer to. A journey with no email step: **Not applicable**. Report guide views for each step next to entered, and say they aren't comparable: views count people who entered in the window, and one person can view several steps |
 
 ## Always say plainly
 
@@ -44,7 +47,7 @@ Report each check as **Pass**, **Warning** or **Needs a fix**, with the evidence
 ## Output
 
 Lead with a one-line verdict:
-- *Not doing its job*: any check from 1, 2, 3, 9 or 13 needs a fix. If it is still sending after its event or
+- *Not doing its job*: any check from 1, 2, 3, 9 or 13 needs a fix. A check you couldn't count is never a fix: list it under caveats. If it is still sending after its event or
   deadline date, say **pause it now**, first.
 - *Working, with N warnings*: only warnings.
 - *Set up as intended*: everything passes.

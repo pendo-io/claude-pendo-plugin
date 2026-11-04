@@ -10,6 +10,10 @@ answer.
 
 ## Tool cards
 
+**Count with `limit` 1, list only when you need rows.** Visitor tools' summary counts aren't capped by
+`limit`, and a 5,000-row reply is several megabytes: more than a client without code can hold. Ask for rows only
+for a per-person method, and say so when a method needed rows you couldn't read.
+
 **Pass `limit` on every list and visitor read.** Visitor and email row tools return 200 rows unless you ask for
 more (up to 5,000), and `listOrchestrateJourneys` and `listOrchestrateEmails` return 50 a page unless you ask for
 more (up to 500). The defaults look like a complete answer and aren't. Summary counts such as
@@ -19,7 +23,7 @@ more (up to 500). The defaults look like a complete answer and aren't. Summary c
 | --- | --- | --- | --- |
 | `listOrchestrateJourneys` | All journeys, optional `status` | `limit` ≤ 500 with `offset`. **No total**: page until a short page | No name filter. Match by name, then by `appId` |
 | `getOrchestrateJourney` | One journey's configuration | — | Goal, entry segment, schedule, `ignoreThrottling`, `reachInactiveVisitors`, `retainVisitorsAfterEntry`, `controlGroupSize`. No step graph, no email content, no split rules |
-| `getOrchestrateJourneySteps` | Step graph | — | Steps, edges, `messageId`, `messageType`, `durationInDays`. Condition steps return a label only, not the rule |
+| `getOrchestrateJourneySteps` | Step graph | — | Steps, edges, `messageId`, `messageType`, `durationInDays`. On an email step, `durationInDays` is the wait until the next step. On a guide step, it's how long the guide stays available to the person; whether people move on sooner isn't shown. Condition steps return a label only, not the rule |
 | `getOrchestrateJourneyMetrics` | Entered, completed, goal achievers | — | With a date range, `visitorsAchievedGoal` and `goalAttainmentRate` are **dropped**. Goal numbers are cumulative only |
 | `getOrchestrateJourneyStepMetrics` | Per message step, people who **entered within the date range** | — | Counts are unique people per step, never emails |
 | `getOrchestrateJourneyStepVisitors` | Per person, one step, entrants in the range, events in the range | ≤ 5,000 rows. `summary.numVisitors` is the full count; `summary.truncated` | Rows sorted by visitor ID. `eventType` decides who appears |
@@ -128,8 +132,8 @@ Never say "there's no usage data for X" until you've searched every app and chec
 
 **People with no email address** (they can't be sent anything):
 - Find the email field with `visitorMetadataSchema` (often `visitor.agent.email`).
-- Call `listVisitors` on the audience segment with `groupByMetadata` set to that field, `limit` 5. The
-  "(none)" group is the count.
+- Build a segment with `buildPendoSegment`: member of the audience segment AND that field empty. Call
+  `listVisitors` on it with `limit` 1: `summary.numVisitors` and `numAccounts` are the counts.
 - This counts **today's audience**, not the journey's entrants. It can include people who never entered and
   miss entrants who have since left. So it is supporting evidence for a *possible* cause, never a count of the
   entered-but-not-sent gap. Report it as "N of today's audience have no email address".
@@ -143,7 +147,7 @@ Never say "there's no usage data for X" until you've searched every app and chec
 - Step entry times (`stepVisits`) are not send times.
 
 **People who can't reach a step before the journey ends:**
-- For each message step, add up the waits before it on the path (`durationInDays`).
+- For each message step, add up the waits before it on the path: the `durationInDays` of each email step before it. A guide step's days are how long the guide stays available, and the data doesn't show whether people move on sooner. When a guide step sits before the message, give the count both with and without its days, and say which is which.
 - Anyone who entered after the schedule end minus that total can never reach it.
 - Count them from `enteredAt` in `getOrchestrateJourneyVisitors` (`all`), or from entries a day near the end.
 - Also count people whose last `stepVisits` entry is a step before the message, with `completed` false.
@@ -164,6 +168,8 @@ Never say "there's no usage data for X" until you've searched every app and chec
 - `getOrchestrateJourneyVisitors`: call it once with `enrollmentFilter=active` and once with `completed`.
 - Step and email visitor tools: split the date range into shorter windows, or use separate `eventType`s.
 - Never say the rest "can't be retrieved" before you've tried splitting.
+- When no split fits (one day alone is over 5,000), stop splitting: write **Not counted** for that line and say
+  why.
 
 **Journey emails vs standalone emails.**
 - Page `listOrchestrateEmails`.

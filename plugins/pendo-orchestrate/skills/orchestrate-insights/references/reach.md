@@ -7,6 +7,9 @@ Answers "why didn't more people get it, who are they, and how long until they ge
 Check the claim before diagnosing it. If someone says an email "isn't sending", read step metrics first. When
 sends exist, say how many and since when, then answer the real question.
 
+"Fewer" means fewer sent than entered, unless the user names another base (the audience size, an expected
+number). Say which base you used.
+
 ## Reads (budget: about 15 calls)
 
 1. `getOrchestrateJourney` and `getOrchestrateJourneySteps`: schedule, waits, goal (required or optional), the
@@ -27,7 +30,8 @@ sends exist, say how many and since when, then answer the real question.
 Use one column for each stage, and keep the same unit (people) all the way down:
 
 1. **Entered**: `getOrchestrateJourneyVisitors` with `all`, `summary.numVisitors`.
-2. **Reached the step**: people whose `stepVisits` include the step.
+2. **Reached the step**: people whose `stepVisits` include the step. If the list is cut even after splitting,
+   write **Not counted** and give what the rows you have show, labelled as the first rows by visitor ID.
 3. **Sent**: step metrics.
 4. **Delivered**: step metrics.
 5. **Opened or viewed**: step metrics.
@@ -45,7 +49,8 @@ Use two lists, never mixed.
 - Bounces, from step metrics. A bounce happens after a send, so it never explains a missing send.
 **Matched on today's audience** (supporting evidence for a possible cause, not a count of entrants):
 - **No email address.** "N of today's audience have no email address" (contract: *People with no email address*).
-- **Inactive for over 12 months,** when `reachInactiveVisitors` is false. Use `buildPendoSegment` for a last
+- **Inactive for over 12 months,** when `reachInactiveVisitors` is false and the audience rule doesn't already
+  require recent activity (if it does, skip this and say why). Use `buildPendoSegment` for a last
   visit more than 365 days before the journey started, then `listVisitors`.
 - Say plainly that today's audience isn't the entrant cohort. If it has clearly changed (new entries since,
   or a rule on recent activity), give the number as an indication only.
