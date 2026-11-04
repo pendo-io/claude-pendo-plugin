@@ -28,7 +28,7 @@ Report each check as **Pass**, **Warning** or **Needs a fix**, with the evidence
 | 6 | **Audience settings** | `retainVisitorsAfterEntry=false` with an entry rule people leave by acting ("has not done X"). Say it as: people leave the journey between steps when they stop matching the audience. `reachInactiveVisitors=false` with a "no recent visit" rule: the two conflict. Name the UI settings, never these field names |
 | 7 | **Exclusions work** | The audience rule joins two "is not" conditions with OR, so it excludes nobody |
 | 8 | **Audience quality** | Bounce rate 2% or more and no active-status or recent-activity rule |
-| 9 | **Guide steps shown** | A live guide step has 0 views. Its cause can't be read: don't guess it from the guide's type or settings. Name what to check in the guide's settings |
+| 9 | **Guide steps shown** | A live guide step has 0 views. Its cause can't be read: don't guess it from the guide's type or settings. Name what to check in the guide's settings. A step with `metricUnavailableReason` has **no metrics**, not 0 views: say it can't be read and why (an unsupported step type, or the guide or email is missing), and never count it as 0 |
 | 10 | **Opens and clicks recorded** | Opens under 5% of delivered while clicks are normal (opens not recorded), or clicks above opens (scanner signature) |
 | 11 | **Unsubscribes trending** | Unsubscribe rate rising across weekly windows. Give the rates |
 | 12 | **Throttling** | Say whether the journey ignores throttling. The subscription setting can't be read |

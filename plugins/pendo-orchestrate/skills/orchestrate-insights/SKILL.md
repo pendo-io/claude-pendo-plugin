@@ -12,10 +12,17 @@ return it, you do not know it.
 `references/read-contract.md`. It says what each number means, where lists stop, and which methods work.
 Tool descriptions are the source of truth for parameters; the contract is the source of truth for meaning.
 
-**Critical rule — identify before reading:** Follow `../orchestrate-journeys/references/identify-journey.md` for
-`subId` and `appId`: call `listAllApplications`. If zero or two or more subscription and app pairs match, stop and
-ask. App ids aren't unique across subscriptions.
-- **A journey:** page `listOrchestrateJourneys` (no name filter) and match by name and `appId`.
+**Critical rule — identify before reading:** resolve `subId` and `appId` together. App ids aren't unique across
+subscriptions, so a wrong pair reads another app's journeys.
+- **The user gave both:** use them.
+- **Otherwise:** call `listAllApplications` and narrow the rows by the subscription and app names or ids the user
+  gave. One row: use its `subscriptionId` and `applicationId`. Zero rows, or two or more (including a named
+  subscription with several apps): stop, list the candidates (subscription and app, name and id) and ask.
+- **A journey URL** (`.../s/{subscriptionId}/journeys/{journeyId}`): take `subId` and `journeyId` from it and
+  call `getOrchestrateJourney`. A `messageId` in the URL is the email step's id.
+- **A journey id:** call `getOrchestrateJourney` and confirm its name and `appId`.
+- **A journey name:** page `listOrchestrateJourneys` (no name filter) and match by name, keeping only rows on
+  the resolved `appId`.
 - **An email:** use `listOrchestrateEmails` with its `name` filter (it matches name or subject, standalone and
   journey emails). Page it, and keep rows on the resolved `appId`.
 
@@ -119,8 +126,8 @@ an item silently. These items are what makes the answer trustworthy, so do the r
 
 Report only what tools returned in this conversation. These aren't available, so say "I can't see that in
 Pendo's data" and do not estimate them: why a given person was not sent an email; who journey throttling held back; the
-subscription's throttle switch and cap; conditional split rules; journey change history and author; email
-send time per person. Missing fields in a response are not proof something is unset.
+subscription's throttle switch and cap; conditional split rules; goal attainment by branch or step; journey
+change history and author; email send time per person. Missing fields in a response are not proof something is unset.
 
 ## Output
 

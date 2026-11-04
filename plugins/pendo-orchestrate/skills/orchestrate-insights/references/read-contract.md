@@ -3,12 +3,17 @@
 What the Orchestrate read tools return, what each number means, where lists stop, and which methods work.
 Read this before the first Orchestrate read call. Parameter rules stay on the tools themselves.
 
-Checked against the Pendo backend and the live MCP connector on 2026-10-19. If a tool's description now says
-something different, the description wins. Say so in your answer.
+If a tool's description says something different from this contract, the description wins. Say so in your
+answer.
 
 ---
 
 ## Tool cards
+
+**Pass `limit` on every list and visitor read.** Visitor and email row tools return 200 rows unless you ask for
+more (up to 5,000), and `listOrchestrateJourneys` and `listOrchestrateEmails` return 50 a page unless you ask for
+more (up to 500). The defaults look like a complete answer and aren't. Summary counts such as
+`summary.numVisitors` aren't capped by `limit`.
 
 | Tool | Scope | Row cap and truncation signal | Notes |
 | --- | --- | --- | --- |
@@ -19,12 +24,12 @@ something different, the description wins. Say so in your answer.
 | `getOrchestrateJourneyStepMetrics` | Per message step, people who **entered within the date range** | — | Counts are unique people per step, never emails |
 | `getOrchestrateJourneyStepVisitors` | Per person, one step, entrants in the range, events in the range | ≤ 5,000 rows. `summary.numVisitors` is the full count; `summary.truncated` | Rows sorted by visitor ID. `eventType` decides who appears |
 | `getOrchestrateJourneyVisitors` | Who is in the journey **now** (point in time, `meta.evaluatedAt`) | ≤ 5,000 rows. `summary.numVisitors` is uncapped; `summary.truncated` | Default filter is `active`: use `all` for everyone who ever entered. Each row has `enteredAt` and `stepVisits[].enteredAt`. `meta.enrollmentAvailable=false` means no list yet |
-| `getOrchestrateVisitorJourneyState` | One person, all active or paused journeys | ≤ 5,000 | **Omits journeys where the person hit the entry throttle.** Ended journeys may be missing |
+| `getOrchestrateVisitorJourneyState` | One person, all active or paused journeys | ≤ 5,000 | **Omits journeys where the person hit the entry throttle.** Ended journeys may be missing. `awaitingMessage` can stay true after the message was sent or bounced: check `getOrchestrateVisitorEmails` before saying a message is still pending |
 | `getOrchestrateVisitorEmails` | One person, emails in the range | ≤ 5,000. `summary.truncated` | One person per call |
 | `listOrchestrateEmails` | Standalone **and** journey emails | `limit` ≤ 500 with `offset`. **No total** | Has a `name` filter. Survey emails are excluded |
 | `getOrchestrateEmail` | One email's configuration | — | `attributes.journeyId` is set when the email belongs to a journey |
 | `getOrchestrateEmailMetrics` | One email, unique people, all its sends in the range | — | `metricsScope` and `segmentPipeline` (see Methods) |
-| `getOrchestrateEmailVisitors` | Per person, one email | `limit` ≤ 5,000, but rows have been seen to stop around 500 with no cursor. **No `truncated` field**: compare `summary.numVisitors` with the row count | — |
+| `getOrchestrateEmailVisitors` | Per person, one email | `limit` ≤ 5,000, no cursor. **No `truncated` field**: compare `summary.numVisitors` with the row count | A bounced row can also show delivered. Not delivered minus bounced has no reason field: report that gap as unexplained |
 
 All date ranges are inclusive, in the subscription's time zone, at most 367 days. All rates are on a 0–100
 scale. Bounced means hard bounces only.
@@ -180,15 +185,13 @@ today's segment. If 25% or more already did it, say the goal is weak. At 50% or 
 
 ---
 
-## Known read defects (as of 2026-10-19)
+## Known read limits
 
-Internal reference: never quote these ticket keys in an answer. Tell the user what the number can't show.
+Tell the user what the number can't show. Don't name tickets or internal tools.
 
-| Defect | Ticket |
-| --- | --- |
-| A goal number is dropped when a date range is given | APP-169232 |
-| `visitorsCompleted` is unreliable on some subscriptions | APP-169234 |
-| Opens can appear with 0 delivered in post-send windows | APP-169235 |
-| List tools have no total or "more" flag | APP-169236 |
-| Email visitor rows stop around 500 with no cursor | APP-169237 |
-| Audiences that match nobody look valid | APP-169239 |
+- A journey's goal numbers are dropped when you pass a date range. Read goals with no range.
+- Opens can appear with 0 delivered in windows after the send.
+- List tools return no total and no "more" flag. Page until a short page.
+- An audience that matches nobody still looks valid.
+- No tool returns goal attainment by branch or by step, only for the whole journey. A stand-in from step
+  rosters and usage ignores the rule that the goal must happen after entry, so don't build one.

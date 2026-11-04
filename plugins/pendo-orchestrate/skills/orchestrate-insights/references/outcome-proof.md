@@ -70,16 +70,9 @@ leads straight to the outcome.
 
 ## 4. Compute
 
-**Where the impact engine is available** (bundled script, or Leo's engine tool):
-- Pass the counts to it for the gap, the before-vs-after difference and its interval.
-- Quote only the engine's numbers.
-
-**Where it is not:**
 - Report the four rates and the two gaps (after minus before), each with its numerator and denominator.
 - Call the result *Compared, with a before comparison*.
-- Say no interval was computed.
-
-Do not compute an interval yourself.
+- Say no interval was computed. Do not compute one yourself.
 
 ## 5. Say it
 
