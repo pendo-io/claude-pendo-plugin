@@ -58,7 +58,8 @@ Use the contract's method, for each main email step:
    - non-openers who did it, before.
 
 **Guide steps:** use step visitors with `eventType=viewed`.
-- Up to 5,000 people: measure them with `entityUsage` against the same outcome.
+- Up to 5,000 people: measure them with `entityUsage` against the same outcome, in batches of 500 visitor IDs (the
+  tool's limit), and add the batches up.
 - Over 5,000: say the comparison is not available for this step.
 
 **Two horizons, always.** Repeat the after window at a second length (for example 7 or 14 days, and 28 days or

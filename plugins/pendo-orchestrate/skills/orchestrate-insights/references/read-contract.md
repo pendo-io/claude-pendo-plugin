@@ -24,14 +24,14 @@ more (up to 500). The defaults look like a complete answer and aren't. Summary c
 | Tool | Scope | Row cap and truncation signal | Notes |
 | --- | --- | --- | --- |
 | `listOrchestrateJourneys` | All journeys, optional `status` | `limit` ≤ 500 with `offset`. **No total**: page until a short page | No name filter. Match by name, then by `appId` |
-| `getOrchestrateJourney` | One journey's configuration | — | Goal, entry segment, schedule, `ignoreThrottling`, `reachInactiveVisitors`, `retainVisitorsAfterEntry`, `controlGroupSize`. No step graph, no email content, no split rules |
+| `getOrchestrateJourney` | One journey's configuration | — | Goal (whether it's required is only in `getOrchestrateJourneyMetrics`: `goal.isGoalOptional`), entry segment, schedule, `ignoreThrottling`, `reachInactiveVisitors`, `retainVisitorsAfterEntry`, `controlGroupSize`. No step graph, no email content, no split rules |
 | `getOrchestrateJourneySteps` | Step graph | — | Steps, edges, `messageId`, `messageType`, `durationInDays`. On an email step, `durationInDays` is the wait until the next step. On a guide step, it's how long the guide stays available to the person; whether people move on sooner isn't shown. Condition steps return a label only, not the rule |
 | `getOrchestrateJourneyMetrics` | Entered, completed, goal achievers | — | With a date range, `visitorsAchievedGoal` and `goalAttainmentRate` are **dropped**. Goal numbers are cumulative only |
-| `getOrchestrateJourneyStepMetrics` | Per message step, people who **entered within the date range** | — | Counts are unique people per step, never emails |
+| `getOrchestrateJourneyStepMetrics` | Per message step, people who **entered within the date range and whose event is also in it**. Events after the end date aren't counted | — | Counts are unique people per step, never emails |
 | `getOrchestrateJourneyStepVisitors` | Per person, one step, entrants in the range, events in the range | ≤ 5,000 rows. `summary.numVisitors` is the full count; `summary.truncated` | Rows sorted by visitor ID. `eventType` decides who appears |
 | `getOrchestrateJourneyVisitors` | Who is in the journey **now** (point in time, `meta.evaluatedAt`) | ≤ 5,000 rows. `summary.numVisitors` is uncapped; `summary.truncated` | Default filter is `active`: use `all` for everyone who ever entered. Each row has `enteredAt` and `stepVisits[].enteredAt`. `meta.enrollmentAvailable=false` means no list yet |
 | `getOrchestrateVisitorJourneyState` | One person, all active or paused journeys | ≤ 5,000 | **Omits journeys where the person hit the entry throttle.** Ended journeys may be missing. `awaitingMessage` can stay true after the message was sent or bounced: check `getOrchestrateVisitorEmails` before saying a message is still pending |
-| `getOrchestrateVisitorEmails` | One person, emails in the range | ≤ 5,000. `summary.truncated` | One person per call |
+| `getOrchestrateVisitorEmails` | One person, emails in the range | ≤ 5,000. `summary.truncated` | One person per call. `eventType` defaults to opened: pass `delivered` (or `sent`) to count what the person received |
 | `listOrchestrateEmails` | Standalone **and** journey emails | `limit` ≤ 500 with `offset`. **No total** | Has a `name` filter. Survey emails are excluded |
 | `getOrchestrateEmail` | One email's configuration | — | `attributes.journeyId` is set when the email belongs to a journey |
 | `getOrchestrateEmailMetrics` | One email, unique people, all its sends in the range | — | `metricsScope` and `segmentPipeline` (see Methods) |
@@ -126,9 +126,9 @@ sample.
 2. The journey goal, read with `getEntity`.
 3. Search every app for the purpose's words: `searchEntities` with no `appId` (Feature, Page, TrackType), or
    `listPagesFeaturesAndEvents` per app. Outcomes often live in another app (a community site, a docs site).
-4. Keep the item with recorded events in the window (`entityUsage`). Check events **in the item's own app**:
-   pass that app's id, never the journey's app. An item in another app shows 0 events when checked in the
-   wrong app.
+4. Keep the item with recorded events in the window (`entityUsage`). `entityUsage` takes the item's id, and each
+   item belongs to one app: use the id of the item you found, never a same-named page or feature in the journey's
+   app, which is a different item and can show 0 events. Name the item's app in the answer.
 
 Never say "there's no usage data for X" until you've searched every app and checked for events.
 

@@ -23,7 +23,8 @@ Answers "are we over-messaging people?" and "how many messages does a person get
    - Where you can run code, count instead how many of the top emails each recipient appears in, from each
      email's delivered rows (one call per email). That covers everyone in those emails, not a sample.
    - Rows are sorted by visitor ID. If the list was cut, say the subset comes from the first rows only.
-3. For each person in the subset, call `getOrchestrateVisitorEmails` over the window.
+3. For each person in the subset, call `getOrchestrateVisitorEmails` over the window with `eventType=delivered`.
+   The default counts only emails they opened.
 4. Report the distribution in the sample: share of people with 1, 2–3, 4–6 and 7 or more emails.
    - Label it **sample, n = …, drawn from …**.
    - Do not scale it up to the whole audience.

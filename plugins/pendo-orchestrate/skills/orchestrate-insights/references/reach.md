@@ -12,8 +12,10 @@ number). Say which base you used.
 
 ## Reads (budget: about 20 calls)
 
-1. `getOrchestrateJourney` and `getOrchestrateJourneySteps`: schedule, waits, goal (required or optional), the
+1. `getOrchestrateJourney` and `getOrchestrateJourneySteps`: schedule, waits, goal, the
    two segment flags, `ignoreThrottling`.
+   `getOrchestrateJourneyMetrics` with no date range for whether the goal is required: `getOrchestrateJourney`
+   doesn't return it.
 2. `getOrchestrateJourneyVisitors` with `enrollmentFilter=all` and `limit` 1 for the uncapped `summary.numVisitors`.
    If that's under 5,000 (or a split brings it there), read the rows (up to 5,000) for:
    - each person's `enteredAt`;

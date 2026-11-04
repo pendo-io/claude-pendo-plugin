@@ -27,7 +27,7 @@ Report each check as **Pass**, **Warning** or **Needs a fix**, with the evidence
 | 2 | **Every path sends something** | A path from start reaches an exit without a message step. Name the path |
 | 3 | **Waits fit the schedule** | People can't reach a message before the schedule ends, or are stuck on a step before it. **Count** them (contract: *People who can't reach a step before the journey ends*) |
 | 4 | **Goal has recorded events and is specific** | No events were recorded for the goal in the window, or most entrants already do it (see the contract) |
-| 5 | **Goal required or optional** | Required goal plus a goal that is the email's own call to action: achievers are removed from later messages. Say whether that was intended |
+| 5 | **Goal required or optional** | Read it from journey metrics (`goal.isGoalOptional`). Required goal plus a goal that is the email's own call to action: achievers are removed from later messages. Say whether that was intended |
 | 6 | **Audience settings** | `retainVisitorsAfterEntry=false` with an entry rule people leave by acting ("has not done X"). Say it as: people leave the journey between steps when they stop matching the audience. `reachInactiveVisitors=false` with a "no recent visit" rule: the two conflict. Name the UI settings, never these field names |
 | 7 | **Exclusions work** | The audience rule joins two "is not" conditions with OR, so it excludes nobody |
 | 8 | **Audience quality** | Bounce rate 2% or more and no active-status or recent-activity rule |
