@@ -45,7 +45,9 @@ Give each drop its count and its share of the stage before it.
 
 Use two lists, never mixed.
 
-**Counted** (from tool fields, or with a counting method from the contract):
+**Counted** (from tool fields, or with a counting method from the contract). A number you got by subtracting
+one read's count from another's (sent minus completed, active minus sent) is not counted: the two reads count
+different people and windows. Put it under possible causes, with the read that would count it.
 - People still waiting before the step, as of `meta.evaluatedAt`: they are in progress at an earlier step.
 - People whose wait ends after the schedule end: they will never reach the step.
 - People already marked completed (`completed=true`) before the step, whether by an exit step or a required goal.

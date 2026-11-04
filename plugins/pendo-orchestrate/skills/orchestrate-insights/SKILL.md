@@ -140,6 +140,9 @@ Lead with the answer in two sentences, then the numbers (each with its window, u
 actions, then caveats. Keep it as short as the asker needs: one slide for an exec, the full table for a
 builder.
 
+Before you send it, reread the answer and take out every id (app, journey, visitor, segment), tool name and
+field name. Write the UI label instead (**Retain visitors after entry**, the visitor's email address).
+
 ## Terminology (match Orchestrate UI)
 
 Say journey, standalone email, step, email step, guide step, wait, conditional split, exit, goal, audience,
