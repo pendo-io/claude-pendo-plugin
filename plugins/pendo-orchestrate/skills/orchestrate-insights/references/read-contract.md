@@ -11,8 +11,10 @@ answer.
 ## Tool cards
 
 **Count with `limit` 1, list only when you need rows.** Visitor tools' summary counts aren't capped by
-`limit`, and a 5,000-row reply is several megabytes: more than a client without code can hold. Ask for rows only
-for a per-person method, and say so when a method needed rows you couldn't read.
+`limit`, and a 5,000-row reply is several megabytes: more than a client without code can hold. A `limit` 1 call
+still returns one row with a visitor ID or email: never print it. Ask for rows only for a per-person method, and
+only when the count fits under 5,000 or a split brings it there. Say so when a method needed rows you couldn't
+read.
 
 **Pass `limit` on every list and visitor read.** Visitor and email row tools return 200 rows unless you ask for
 more (up to 5,000), and `listOrchestrateJourneys` and `listOrchestrateEmails` return 50 a page unless you ask for
@@ -170,6 +172,9 @@ Never say "there's no usage data for X" until you've searched every app and chec
 - Never say the rest "can't be retrieved" before you've tried splitting.
 - When no split fits (one day alone is over 5,000), stop splitting: write **Not counted** for that line and say
   why.
+
+**Windows that don't reconcile.** Step counts for a window count people who entered in it, so a window's sent
+can exceed its entered. When two windows don't add up, say so and don't split the gap between them.
 
 **Journey emails vs standalone emails.**
 - Page `listOrchestrateEmails`.

@@ -13,8 +13,8 @@ check, before activation or for a live journey.
 4. `getSegment` on the entry segment, for its rule text.
 5. `entityUsage` on the goal item over the live dates, with no visitor filter.
 6. `getOrchestrateEmail` for each email step, only when a check below needs its name or settings.
-7. For check 3 on a live journey: `getOrchestrateJourneyVisitors` with `enrollmentFilter=all` and `limit` up to
-   5,000, for entry dates and where people are now. If the list is cut, give the count for the rows you have and
+7. For check 3 on a live journey: `getOrchestrateJourneyVisitors` with `enrollmentFilter=all` and `limit` 1 for the
+   count. Read rows (up to 5,000) only when the count fits, for entry dates and where people are now. If the list is cut, give the count for the rows you have and
    say it covers only part of the journey.
 
 ## Checks
@@ -51,6 +51,8 @@ Lead with a one-line verdict:
   deadline date, say **pause it now**, first.
 - *Working, with N warnings*: only warnings.
 - *Set up as intended*: everything passes.
+
+Checks that are **Not applicable** (no email steps, no goal, no end date) count as neither a pass nor a warning.
 
 Then the counts that matter most in one line each: entered, sent, never sent, and anything since the event date.
 

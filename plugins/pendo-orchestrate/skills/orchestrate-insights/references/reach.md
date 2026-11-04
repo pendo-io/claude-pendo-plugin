@@ -10,12 +10,12 @@ sends exist, say how many and since when, then answer the real question.
 "Fewer" means fewer sent than entered, unless the user names another base (the audience size, an expected
 number). Say which base you used.
 
-## Reads (budget: about 15 calls)
+## Reads (budget: about 20 calls)
 
 1. `getOrchestrateJourney` and `getOrchestrateJourneySteps`: schedule, waits, goal (required or optional), the
    two segment flags, `ignoreThrottling`.
-2. `getOrchestrateJourneyVisitors` with `enrollmentFilter=all` and `limit` up to 5,000:
-   - the uncapped `summary.numVisitors`;
+2. `getOrchestrateJourneyVisitors` with `enrollmentFilter=all` and `limit` 1 for the uncapped `summary.numVisitors`.
+   If that's under 5,000 (or a split brings it there), read the rows (up to 5,000) for:
    - each person's `enteredAt`;
    - each person's step entry times;
    - where each in-progress person is now.
@@ -29,7 +29,8 @@ number). Say which base you used.
 
 Use one column for each stage, and keep the same unit (people) all the way down:
 
-1. **Entered**: `getOrchestrateJourneyVisitors` with `all`, `summary.numVisitors`.
+1. **Entered**: `getOrchestrateJourneyVisitors` with `all` and `limit` 1, `summary.numVisitors`. Read rows only
+   if entered is under 5,000 or a split brings it there.
 2. **Reached the step**: people whose `stepVisits` include the step. If the list is cut even after splitting,
    write **Not counted** and give what the rows you have show, labelled as the first rows by visitor ID.
 3. **Sent**: step metrics.
