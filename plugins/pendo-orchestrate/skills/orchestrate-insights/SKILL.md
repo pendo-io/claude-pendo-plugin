@@ -20,6 +20,8 @@ subscriptions, so a wrong pair reads another app's journeys.
 - **One subscription, several apps, and a named journey or email:** don't ask yet. Match the name across the
   subscription (journey and email rows carry their `appId`). Exactly one match: use its app. Zero, or matches
   on two or more apps: list the candidates (app, name, id, status) and ask.
+- **One subscription, several apps, and no journey or email named:** ask which app, unless the question covers
+  the whole subscription (a program report, message load). Then read every app and name each one in the answer.
 - **A journey URL** (`.../s/{subscriptionId}/journeys/{journeyId}`): take `subId` and `journeyId` from it and
   call `getOrchestrateJourney`. A `messageId` in the URL is the email step's id.
 - **A journey id:** call `getOrchestrateJourney` and confirm its name and `appId`.
@@ -80,7 +82,8 @@ an item silently. These items are what makes the answer trustworthy, so do the r
 - **Counted causes:** people still waiting, people who completed early, and people who can't reach the step
   before the schedule ends.
 - **Matched on today's audience,** labelled as such: no email address, and inactive for more than 12 months
-  (when the journey doesn't reach inactive visitors).
+  (when the journey doesn't reach inactive visitors and its audience doesn't already require recent activity;
+  otherwise say why it was skipped).
 - Possible causes, each labelled with its test.
 - For timing questions: the configured wait, and **sends a day against entries a day** for the first days.
 

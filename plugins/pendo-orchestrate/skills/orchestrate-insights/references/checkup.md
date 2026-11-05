@@ -8,14 +8,16 @@ check, before activation or for a live journey.
 1. `getOrchestrateJourney`: purpose (name, description), goal, entry segment, schedule start and end, the two
    segment flags, `ignoreThrottling`.
 2. `getOrchestrateJourneySteps`: every step, edge, wait and `messageType`.
-3. For a live journey: `getOrchestrateJourneyMetrics` (no date range, for the cumulative goal) and
-   `getOrchestrateJourneyStepMetrics` over the journey's live dates.
+3. `getOrchestrateJourneyMetrics` with no date range, whenever the journey has a goal (live or not): check 5 needs
+   its `goal.isGoalOptional`, and a live journey's cumulative goal comes from the same call. For a live journey,
+   also `getOrchestrateJourneyStepMetrics` over the journey's live dates.
 4. `getSegment` on the entry segment, for its rule text.
 5. `entityUsage` on the goal item over the live dates, with no visitor filter.
 6. `getOrchestrateEmail` for each email step, only when a check below needs its name or settings.
 7. For check 3 on a live journey: `getOrchestrateJourneyVisitors` with `enrollmentFilter=all` and `limit` 1 for the
-   count. Read rows (up to 5,000) only when the count fits, for entry dates and where people are now. If the list is cut, give the count for the rows you have and
-   say it covers only part of the journey.
+   count. Read rows (up to 5,000) only when the count fits, or when the contract's split (`active`, then
+   `completed`) brings each part under 5,000, for entry dates and where people are now. If no split fits, give
+   the count for the rows you have and say it covers only part of the journey.
 
 ## Checks
 
