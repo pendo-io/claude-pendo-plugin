@@ -30,7 +30,7 @@
     {
       "name": "pendo-orchestrate",
       "source": "./plugins/pendo-orchestrate/",
-      "description": "Create, configure, and edit draft Orchestrate email journeys via Pendo MCP — multi-email journeys and conditional split flows"
+      "description": "Create, configure, and edit draft Orchestrate email journeys via Pendo MCP — multi-email journeys and conditional split flows; plus read-only insights: journey checkups, reach diagnosis, outcome checks, program reports. Activation in Orchestrate UI."
     }
   ]
 }
