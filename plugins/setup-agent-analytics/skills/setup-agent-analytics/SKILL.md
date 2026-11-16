@@ -12,6 +12,8 @@ description: >-
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
+<!-- Generated from pendo-io/pendo-sdk skills/setup/setup-agent-analytics at b8b5b05. Edit it there; this copy is replaced at the next mirror. -->
+
 You are setting up Pendo agent analytics for this codebase. There are **four instrumentation paths** and your first job is to route to the right one. Only after the path is chosen do you scan for agents and wire up tracking.
 
 Arguments: `$ARGUMENTS` may contain one or more Pendo agent IDs (space-separated). If provided, use them when instrumenting (first ID → first agent; order detected agents stably by main-file path, and show the ID↔agent mapping when confirming Phase 1 findings). If there are fewer IDs than detected agents, use `"YOUR_AGENT_ID"` as a placeholder for the extras. If no IDs are provided, use `"YOUR_AGENT_ID"` for all agents and tell the user to replace them after creating agent IDs in the Pendo UI.
@@ -197,7 +199,7 @@ Every optional field: **wire to real value or omit** — never hardcode a placeh
 
 ## Path A: Python SDK (`pendo-server-sdk`)
 
-**Install:** `pip install pendo-server-sdk` (mention this to the user; don't run pip yourself unless they ask).
+**Install:** `pip install pendo-server-sdk` (mention this to the user; don't run pip yourself unless they ask). In the project's dependency file, pin the newest release (`pendo-server-sdk==<version>`; `pip index versions pendo-server-sdk` shows it). This skill names no SDK version on purpose: its text holds for every release until the wiring itself changes.
 
 ### A.1 — Initialize once at startup
 
@@ -324,7 +326,7 @@ Prefer `@trace_llm` over this — it produces exactly this structure.
 
 ## Path B: TypeScript SDK (`pendo-server-sdk`)
 
-**Install:** `npm install pendo-server-sdk` (tell the user; don't run it yourself unless asked).
+**Install:** `npm install pendo-server-sdk` (tell the user; don't run it yourself unless asked). When you add it to `package.json` by hand, use the newest release (`npm view pendo-server-sdk version` shows it).
 
 ### B.1 — Initialize once at startup
 

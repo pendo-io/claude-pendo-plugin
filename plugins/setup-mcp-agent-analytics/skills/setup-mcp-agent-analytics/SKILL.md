@@ -2,19 +2,23 @@
 name: setup-mcp-agent-analytics
 description: >-
   Instrument an MCP server with Pendo MCP analytics in Python, TypeScript,
-  Go, or Java. Detects which language/SDK the server is built with and wires
-  up the matching Pendo integration — PendoMCPServer (Python), initMcp()
-  (TypeScript), gosdk.Instrument() (Go), or PendoMcpServer.wrapAll() (Java,
-  io.pendo:pendo-sdk-mcp) — then verifies data is flowing to Pendo Agent
+  Go, Java, or .NET. Detects which language/SDK the server is built with and
+  wires up the matching Pendo integration — PendoMCPServer (Python),
+  initMcp() (TypeScript), gosdk.Instrument() (Go), PendoMcpServer.wrapAll()
+  (Java, io.pendo:pendo-sdk-mcp), or WithPendoAgentAnalytics() (.NET,
+  Pendo.AgentAnalytics.Mcp) — then verifies data is flowing to Pendo Agent
   Analytics. Use this whenever the user wants Pendo analytics on an MCP
   server, mentions "MCP analytics", "track MCP tool calls", "PendoMCPServer",
-  "PendoMcpServer", "initMcp", "pendo-sdk-mcp", "instrument my MCP server",
-  or has an MCP server (including a Spring AI MCP server) and asks for
-  Pendo/agent analytics — even if they don't say "MCP analytics" verbatim.
+  "PendoMcpServer", "initMcp", "pendo-sdk-mcp", "WithPendoAgentAnalytics",
+  "Pendo.AgentAnalytics.Mcp", "instrument my MCP server", or has an MCP
+  server (including a Spring AI or a .NET ModelContextProtocol MCP server)
+  and asks for Pendo/agent analytics — even if they don't say "MCP analytics" verbatim.
   NOT for instrumenting regular (non-MCP) agents — use setup-agent-analytics
   for that.
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
+
+<!-- Generated from pendo-io/pendo-sdk skills/setup/setup-mcp-agent-analytics at b8b5b05. Edit it there; this copy is replaced at the next mirror. -->
 
 # Set up Pendo MCP Analytics
 
@@ -22,35 +26,41 @@ Instrument an MCP server so tool calls, user intent, and client info flow to
 Pendo Agent Analytics. The guiding contract, set by product: **a customer
 installing for MCP analytics gets ONLY MCP analytics** — never silently
 instrument their other LLM/agent code. This applies identically across all
-four SDKs below.
+five SDKs below.
 
-There are four SDKs, one per language — your first job is to detect which
+There are five SDKs, one per language — your first job is to detect which
 one applies.
+
+This skill names no SDK version on purpose. Install the newest stable release
+of the SDK and pin the exact version you installed in the project's manifest.
+The text below holds for every release until the wiring itself changes.
 
 ---
 
-## Phase 0: Identify the SDK (Python, TypeScript, Go, or Java)
+## Phase 0: Identify the SDK (Python, TypeScript, Go, Java, or .NET)
 
 Look at the project for the MCP framework in use:
 
 | Signal | SDK |
 |--------|-----|
-| `pyproject.toml` / `requirements.txt` with `mcp`; `Server(` from `mcp.server.lowlevel` or `FastMCP(` from `mcp.server.fastmcp` | **Python** — `pendo-server-sdk` (pip, `[mcp]` extra) |
+| `pyproject.toml` / `requirements.txt` with `mcp`; `Server(` from `mcp.server.lowlevel`, `FastMCP(` from `mcp.server.fastmcp` (mcp 1.x) or `MCPServer(` from `mcp.server.mcpserver` (mcp 2.x) | **Python** — `pendo-server-sdk` (pip, `[mcp]` extra) |
 | `package.json` with `@modelcontextprotocol/sdk`; `new McpServer(` or `new Server(` | **TypeScript** — `pendo-server-sdk` (npm) |
-| `go.mod` with `github.com/modelcontextprotocol/go-sdk` (or another Go MCP framework, e.g. `mark3labs/mcp-go`) | **Go** — `github.com/pendo-io/go-sdk` |
-| `pom.xml` / `build.gradle(.kts)` with `io.modelcontextprotocol.sdk:mcp` or a Spring AI `spring-ai-starter-mcp-server*`; `McpServer.sync(` / `McpServer.async(`, or `@McpTool` methods | **Java** — `io.pendo:pendo-sdk-mcp` (MCP Java SDK 1.0+/2.x) or `io.pendo:pendo-sdk-mcp-0x` (0.x generation; Spring AI 1.x). The Java section has the generation check. |
+| `go.mod` with `github.com/modelcontextprotocol/go-sdk` (or another Go MCP framework, e.g. `mark3labs/mcp-go`) | **Go** — `github.com/pendo-io/pendo-sdk/sdks/go` |
+| `pom.xml` / `build.gradle(.kts)` with `io.modelcontextprotocol.sdk:mcp` or a Spring AI `spring-ai-starter-mcp-server*`; `McpServer.sync(` / `McpServer.async(`, or `@McpTool` methods | **Java** — one of four `io.pendo` artifacts: a Spring AI starter (`pendo-sdk-spring-ai`, `-0x`) when Spring AI builds the server, otherwise the adapter (`pendo-sdk-mcp`, `-0x`). The Java section's first table picks it. |
+| A `.csproj` with `PackageReference Include="ModelContextProtocol"` or `"ModelContextProtocol.AspNetCore"`; `AddMcpServer(`, `[McpServerToolType]`, or `McpServer.Create(` | **.NET** — `Pendo.AgentAnalytics.Mcp` (NuGet) |
 
 If several MCP servers exist (possibly in different languages, e.g. a
 monorepo), confirm which to instrument — each gets its own agent ID. State
 the detected language in one line ("I'll use the **TypeScript SDK** — this
-is an `@modelcontextprotocol/sdk` server"; for Java also name the module:
-"I'll use the **Java SDK**, module `pendo-sdk-mcp-0x` — this is a Spring AI
-1.x server on MCP SDK 0.18.3") and confirm before proceeding, unless the
+is an `@modelcontextprotocol/sdk` server"; for Java also name the artifact:
+"I'll use the **Java SDK**, artifact `pendo-sdk-spring-ai-0x` — this is a
+Spring AI 1.1 server on MCP SDK 0.18.3") and confirm before proceeding, unless the
 user already named the language or only one server is present.
 
 Then jump to the matching section below: **[Python](#python-pendo-server-sdk)**,
-**[TypeScript](#typescript-pendo-server-sdk)**, **[Go](#go-github-compendo-iogo-sdk)**,
-or **[Java](#java-iopendopendo-sdk-mcp--pendo-sdk-mcp-0x)**.
+**[TypeScript](#typescript-pendo-server-sdk)**, **[Go](#go-githubcompendo-iopendo-sdksdksgo)**,
+**[Java](#java-iopendo)**,
+or **[.NET](#net-pendoagentanalyticsmcp)**.
 
 ---
 
@@ -64,7 +74,7 @@ Ask, don't guess:
 - **Agent ID** — the Agent Analytics agent this data routes to; the user
   creates it in the Pendo UI first (Product → Agent Analytics → settings
   icon next to the agent name).
-- **Endpoint** — only for non-US-prod (EU / dev stacks). All four SDKs
+- **Endpoint** — only for non-US-prod (EU / dev stacks). All five SDKs
   default to `https://app.pendo.io`, sending to
   `<endpoint>/data/agenticsdk/<api_key>`.
 
@@ -81,21 +91,25 @@ not two rounds of guessing.
 ### Find the MCP server
 
 Look for the `mcp` package (`modelcontextprotocol` Python SDK): `Server(`
-from `mcp.server.lowlevel` (low-level) or `FastMCP(` from `mcp.server.fastmcp`
-(high-level). Both are accepted — `PendoMCPServer` unwraps `FastMCP._mcp_server`
-itself.
+from `mcp.server.lowlevel` (low-level), `FastMCP(` from `mcp.server.fastmcp`
+(mcp 1.x) or `MCPServer(` from `mcp.server.mcpserver` (mcp 2.x). All are
+accepted — `PendoMCPServer` finds the low-level server itself.
 
 ### Install
 
 Requires the `mcp` extra (`pip install "pendo-server-sdk[mcp]"`, Python >= 3.10).
+In the project's dependency file, pin the newest release
+(`pendo-server-sdk[mcp]==<version>`; `pip index versions pendo-server-sdk`
+shows it).
 
 ### Wire it in
 
 ```python
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP  # mcp 1.x
+# from mcp.server.mcpserver import MCPServer  # mcp 2.x
 from pendo_sdk.mcp import PendoMCPServer
 
-server = FastMCP("my-mcp")
+server = FastMCP("my-mcp")  # MCPServer("my-mcp") on mcp 2.x
 
 PendoMCPServer(
     server=server,
@@ -180,12 +194,15 @@ Rules that matter:
    dict, which those convenience methods never go through. You'll see no
    injected `user_intent` and no virtual `get_additional_tools`, and
    (falsely) conclude the wiring is broken. Verify over the real protocol
-   instead
-3. **Wire-level assertions**: there's no packaged e2e harness in this repo
-   (unlike `typescript-be-sdk`'s `e2e/`) — `tests/test_mcp.py` shows the
-   pattern instead: swap `PendoSpanExporter._send_jzb` for a list-capturing
-   stub via `SimpleSpanProcessor` to inspect exact wire events
-   (`agentTraceType`, `prompt`/`agent_response` content) without a network call.
+   instead, with Claude Code as the MCP client:
+   `claude -p "<use the tools>" --mcp-config <cfg> --allowedTools "mcp__<name>__*"`
+   exercises `tools/list` + `tools/call` including the injected `user_intent`
+   parameter, exactly like a customer's AI client. For a stdio server, `<cfg>`
+   points at the command that runs it (e.g. `python my_server.py`).
+3. **Wire-level assertions**: in a test, swap `PendoSpanExporter._send_jzb`
+   for a list-capturing stub via `SimpleSpanProcessor` to inspect exact wire
+   events (`agentTraceType`, `prompt`/`agent_response` content) without a
+   network call.
 4. **Latency expectations**: export-200 ≠ visible in the UI. Raw storage in
    minutes; hourly expansion ~8 min past the hour; AA aggregations after
    that. Budget **about an hour** end to end. Redaction is applied
@@ -205,6 +222,8 @@ Look for `@modelcontextprotocol/sdk` usage: `new McpServer(` (high-level) or
 ### Install
 
 `npm install pendo-server-sdk` (tell the user; don't run it yourself unless asked).
+When you add it to `package.json` by hand, use the newest release
+(`npm view pendo-server-sdk version` shows it).
 
 ### Wire it in
 
@@ -240,9 +259,9 @@ Rules that matter:
   same process): call both `initMcp()` and `init()` with **different
   agentIds** — they must surface as separate agents in Pendo. Either order
   works; the pipeline is shared. Reusing one agentId triggers an SDK warning.
-- **stdio transport**: stdout is the JSON-RPC channel. At the very top of the
-  entry file: `console.log = console.error; console.debug = console.error;`
-  — also how you see the SDK's export logs.
+- **stdio transport**: stdout is the JSON-RPC channel. The SDK (>= 0.11.0)
+  logs only to stderr; the server's own code must use `console.error`, never
+  `console.log`. Older SDKs log to stdout: upgrade rather than redirect.
 - **Streamable HTTP with per-session servers**: call `initMcp()` for each
   session's server with the same agentId — safe; one pipeline per process,
   sessions become separate conversations.
@@ -258,7 +277,7 @@ Rules that matter:
 
 ### Verify data is flowing
 
-1. **Export log** (stderr after the console redirect):
+1. **Export log** (stderr):
    `[pendo_sdk] Exported N event(s) to <endpoint>/data/agenticsdk/<key> [200, attempt 1]`.
    No line → check apiKey, endpoint region, and that the wrapper was
    constructed before traffic.
@@ -266,10 +285,11 @@ Rules that matter:
    `claude -p "<use the tools>" --mcp-config <cfg> --allowedTools "mcp__<name>__*"`
    — exercises tools/list + tools/call including the injected `user_intent`
    parameter, exactly like a customer's AI client.
-3. **Wire-level assertions**: this repo's `e2e/` directory has the full
-   harness — a local capture sink (`sink.cjs`), a dogfood server, and
-   `check.mjs` (agentId purity, zero-LLM-leakage). Point the endpoint at the
-   sink to inspect exact wire events. See `e2e/README.md`.
+3. **Wire-level assertions**: the SDK's `e2e/` directory (`sdks/typescript/e2e`
+   in `pendo-io/pendo-sdk`) has the full harness — a local capture sink
+   (`sink.cjs`), a dogfood server, and `check.mjs` (agentId purity,
+   zero-LLM-leakage). Point the endpoint at the sink to inspect exact wire
+   events. See its `README.md`.
 4. **Latency expectations**: export-200 ≠ visible in the UI. Raw storage in
    minutes; hourly expansion ~8 min past the hour; AA aggregations after
    that. Budget **about an hour** end to end. Redaction is applied
@@ -278,11 +298,12 @@ Rules that matter:
 
 ---
 
-## Go (`github.com/pendo-io/go-sdk`)
+## Go (`github.com/pendo-io/pendo-sdk/sdks/go`)
 
 ### Prerequisites
 
-- Go 1.23 or later.
+- Go 1.25 or later for a server on the official MCP Go SDK (the adapter
+  module's floor); the core module on its own needs Go 1.23.
 - Full conversations activated for the agent in Pendo (Product → Agent
   Analytics → Add and configure AI agents).
 - The app's **Public App ID** (Settings → Subscription settings →
@@ -304,10 +325,10 @@ separate module, so the framework dependency only enters the tree if it's used:
 
 ```bash
 # Servers built on the official MCP Go SDK (github.com/modelcontextprotocol/go-sdk)
-go get github.com/pendo-io/go-sdk/adapters/gosdk
+go get github.com/pendo-io/pendo-sdk/sdks/go/adapters/gosdk
 
 # Core only (custom integrations and other MCP frameworks)
-go get github.com/pendo-io/go-sdk
+go get github.com/pendo-io/pendo-sdk/sdks/go
 ```
 
 ### Wire it in
@@ -319,7 +340,7 @@ and agent responses.
 ```go
 import (
     "github.com/modelcontextprotocol/go-sdk/mcp"
-    "github.com/pendo-io/go-sdk/adapters/gosdk"
+    "github.com/pendo-io/pendo-sdk/sdks/go/adapters/gosdk"
 )
 
 s := mcp.NewServer(&mcp.Implementation{Name: "my-server", Version: "1.0.0"}, nil)
@@ -352,23 +373,29 @@ gosdk.Instrument(s, appID, agentID,
 )
 ```
 
-**Capture user intent.** The SDK reports the end user's question as the
-conversation prompt by reading a `userQuery` string argument from each tool
-call. Add a `userQuery` parameter to the tool schemas (described so the
-calling model fills it in); the SDK strips it from the recorded tool
-arguments and surfaces it as the prompt. Tool calls without `userQuery` still
-produce trace and response events, just no prompt event.
+**User intent is captured for you.** The adapter adds a required
+`user_intent` string property to every tool's advertised input schema and
+strips it from the arguments before the tool's own handler runs, so the
+calling model supplies the end user's question on every call and the SDK
+reports it as the conversation prompt. Don't add an intent parameter to the
+tool schemas yourself. A server instrumented with an older SDK may still have
+callers sending a `userQuery` argument: it is accepted as a deprecated alias,
+with a one-time warning.
 
 **Conversation grouping.** Tool calls group into conversations by the MCP
 session ID (Streamable HTTP/SSE). For stdio or in-process transports, which
-have no session ID, the SDK falls back to one conversation per server run.
+have no session ID, the SDK falls back to one conversation per server run
+and logs one deprecation warning (`falling back to a fixed per-process
+conversation id`). `gosdk.WithRequireConversationID()` turns the fallback
+off: a call with no session ID is then not recorded, and `WithOnEmit`
+receives a `pendo.MissingConversationIDError`.
 
 ### Custom integrations (no MCP framework)
 
 The core client works with any Go service — build the tool call and emit it:
 
 ```go
-import pendo "github.com/pendo-io/go-sdk"
+import pendo "github.com/pendo-io/pendo-sdk/sdks/go"
 
 client := pendo.New(pendo.Config{
     APIKey:  "your-pendo-app-id",
@@ -422,64 +449,61 @@ path; call `client.Flush(ctx)` before the process exits to wait for them.
 | Missing or incorrect `agentId` | Required, and must match an Agent ID configured in Pendo for an agent belonging to the app the API key resolves to. |
 | Wrong App ID or endpoint | The SDK sends to `https://app.pendo.io/data/agenticsdk/<apiKey>`. Verify `apiKey` is the Pendo Public App ID (an application key, not a subscription/integration key) and that outbound traffic to this endpoint is allowed. |
 | Emit errors are invisible | Delivery failures are silent by default — add `WithOnEmit` (or check the error from `EmitToolCall`) to surface HTTP errors during setup. |
-| No prompt events | Prompts come from the `userQuery` tool argument — confirm tool schemas include it and the calling model populates it. |
-| Everything in one conversation (stdio) | stdio/in-process transports have no MCP session ID; the SDK groups by one fallback conversation per server run. Use Streamable HTTP for real per-session grouping. |
+| No prompt events | Prompts come from the `user_intent` argument, which the adapter adds to every tool schema — confirm `tools/list` shows it and the calling model populates it. |
+| Everything in one conversation (stdio), or a one-time warning about a fallback conversation id | stdio/in-process transports have no MCP session ID; the SDK groups by one fallback conversation per server run and warns once. Use Streamable HTTP for real per-session grouping, or `gosdk.WithRequireConversationID()` to record no call that lacks a session ID. |
 | Last events of a run missing | Emission is asynchronous; a process that exits right after a tool call can drop the in-flight send. Call `client.Flush(ctx)` (on the client returned by `Instrument`) before exit. |
 
-**Note:** `user_reaction` events (thumbs up/down) are not yet supported in
-the Go SDK. Use the Conversations API or the Python/TypeScript SDKs if
-reactions need to be recorded.
+**Note:** the adapter records tool calls only. A `user_reaction` event
+(thumbs up/down) is sent explicitly, with `client.EmitReaction(ctx,
+pendo.Reaction{...})` on the client `Instrument` returns.
 
 ---
 
-## Java (`io.pendo:pendo-sdk-mcp` / `pendo-sdk-mcp-0x`)
+## Java (`io.pendo`)
 
 ### Prerequisites
 
 - JDK 17 or later.
 - The **Application API Key** and the **Agent ID** (Phase 1).
 
-### Find the MCP server
+### Pick the artifact
 
-Look for the official MCP Java SDK: `pom.xml` / `build.gradle(.kts)` with
-`io.modelcontextprotocol.sdk:mcp`, or a Spring AI MCP server starter
-(`org.springframework.ai:spring-ai-starter-mcp-server*`). Plain servers build
-with `McpServer.sync(` / `McpServer.async(` and pass `SyncToolSpecification` /
-`AsyncToolSpecification`s to `.tools(...)`; Spring AI servers have `@McpTool`
-methods or `ToolCallback` beans and no explicit builder.
-
-**Pick the module by MCP SDK generation** — the one decision Java has that
-the other languages don't:
+Java has four artifacts and a server takes exactly one. Two facts choose it:
+whether Spring AI builds the MCP server, and which MCP Java SDK generation
+the build resolves.
 
 ```bash
-mvn -q dependency:tree -Dincludes=io.modelcontextprotocol.sdk   # or: gradle dependencies | grep modelcontextprotocol
+mvn -q dependency:tree -Dincludes=io.modelcontextprotocol.sdk,org.springframework.ai   # or: gradle dependencies | grep -E 'modelcontextprotocol|springframework.ai'
 ```
 
-| Resolved `io.modelcontextprotocol.sdk:mcp*` | Typical source | Module | Spring AI application |
+| Who builds the server | Resolved `io.modelcontextprotocol.sdk:mcp*` | Add | Wiring |
 |---|---|---|---|
-| 1.0 or later (2.x today) | direct dependency; Spring AI 2.x / Spring Boot 4 | `io.pendo:pendo-sdk-mcp` | `io.pendo:pendo-sdk-spring-ai` |
-| 0.x (0.18.x) | Spring AI 1.x / Spring Boot 3.5 | `io.pendo:pendo-sdk-mcp-0x` | `io.pendo:pendo-sdk-spring-ai-0x` |
+| Spring AI 2.x (Spring Boot 4): a `spring-ai-starter-mcp-server*` dependency; `@McpTool` methods, `ToolCallback` beans or tool specification beans; no explicit builder | 1.0 or later (2.x today) | `io.pendo:pendo-sdk-spring-ai` | none: [the starter](#spring-ai-the-starter) |
+| Spring AI 1.1+ (Spring Boot 3.5), same shape | 0.x (0.18.x) | `io.pendo:pendo-sdk-spring-ai-0x` | none: [the starter](#spring-ai-the-starter) |
+| The application: `McpServer.sync(` / `McpServer.async(` with `.tools(...)` | 1.0 or later (2.x today) | `io.pendo:pendo-sdk-mcp` | [the adapter](#any-other-server-the-adapter) |
+| The application, same shape | 0.x (0.18.x) | `io.pendo:pendo-sdk-mcp-0x` | [the adapter](#any-other-server-the-adapter) |
 
-Same package (`io.pendo.sdk.mcp`), same API; only the artifact differs. A
-Spring AI application takes the starter of its generation instead of the
-adapter: the starter wraps every tool the application exposes and adds
-`get_additional_tools` itself, so "Wire it in" below does not apply to it.
-Name the module in the one-line confirmation (Phase 0).
+Spring AI 1.0.x is not supported (its MCP Java SDK is older than the 0.18.3
+the SDK needs): upgrade to Spring AI 1.1 or later first. Name the artifact in
+the one-line confirmation (Phase 0).
 
 ### Install
 
-Add exactly one module (tell the user; don't run the build yourself unless
-asked). The SDK is published to Pendo's Maven repository on JFrog,
-`https://pendo.jfrog.io/artifactory/pendo-sdk-release`, not to Maven Central,
-so the build needs the repository entry as well as the dependency, and the
-entry stays. Put it in the build that resolves the dependency (with Gradle
-that may be `settings.gradle(.kts)` when `dependencyResolutionManagement`
+Add the one artifact picked above (tell the user; don't run the build
+yourself unless asked). The SDK is published to Pendo's Maven repository on
+JFrog, `https://pendo.jfrog.io/artifactory/pendo-sdk-release`, not to Maven
+Central, so the build needs the repository entry as well as the dependency,
+and the entry stays. Put it in the build that resolves the dependency (with
+Gradle that may be `settings.gradle(.kts)` when `dependencyResolutionManagement`
 is in use) and, where the build tool allows, scope it to the `io.pendo` group
-so nothing else is looked up there. Pin the exact release (`0.1.0` is the
-first). `pendo-sdk-core` arrives transitively; the MCP SDK is `provided`, so
-the customer's own version is the one used. The sibling `pendo-sdk-snapshot`
-repository holds pre-release builds for trying a fix before it ships; never
-pin a customer build to a snapshot.
+so nothing else is looked up there. Pin the exact release: the newest stable
+version listed in
+`https://pendo.jfrog.io/artifactory/pendo-sdk-release/io/pendo/pendo-sdk-mcp/maven-metadata.xml`
+(the highest one with no suffix; every `io.pendo` artifact carries the same
+number). `pendo-sdk-core` arrives transitively; the MCP SDK is `provided`, so
+the customer's own version is the one used. A version with a suffix is a
+pre-release build, offered for trying a fix; never pin a customer build to
+one.
 
 ```xml
 <repositories>
@@ -492,8 +516,8 @@ pin a customer build to a snapshot.
 
 <dependency>
   <groupId>io.pendo</groupId>
-  <artifactId>pendo-sdk-mcp</artifactId>   <!-- pendo-sdk-mcp-0x for the 0.x generation -->
-  <version>0.1.0</version>
+  <artifactId>pendo-sdk-mcp</artifactId>   <!-- the artifact picked above -->
+  <version>X.Y.Z</version>   <!-- the newest stable release, see above -->
 </dependency>
 ```
 
@@ -507,11 +531,59 @@ repositories {
 }
 
 dependencies {
-    implementation("io.pendo:pendo-sdk-mcp:0.1.0")   // pendo-sdk-mcp-0x for the 0.x generation
+    implementation("io.pendo:pendo-sdk-mcp:X.Y.Z")   // the artifact picked above, at the newest stable release
 }
 ```
 
-### Wire it in
+### Spring AI: the starter
+
+The dependency is the whole integration: write no code. At startup the
+starter creates one `PendoMcpServer` bean, wraps every tool specification
+list Spring AI collects (sync, async and stateless) and adds
+`get_additional_tools` once.
+
+Configure it with properties:
+
+```properties
+pendo.api-key=<app api key>
+pendo.agent-id=<AA agent id>
+# pendo.endpoint=<non-prod base URL>
+# pendo.visitor-id=static-visitor
+# pendo.account-id=static-account
+```
+
+or with the environment variables Spring binds to the same properties:
+`PENDO_API_KEY`, `PENDO_AGENT_ID`, `PENDO_ENDPOINT`, `PENDO_VISITOR_ID`,
+`PENDO_ACCOUNT_ID`. With no key or no agent id from either source the
+application still starts: the SDK is disabled and logs one warning naming
+what is missing.
+
+- **Two off switches.** `pendo.spring-ai.enabled=false` turns the starter
+  off, so nothing is wrapped. `pendo.disabled=true` (or `PENDO_DISABLED`)
+  keeps the tools wrapped and sends nothing.
+- **Per-request identity, redaction and every other builder option** go
+  through a `PendoConfigCustomizer` bean, applied after the properties:
+
+  ```java
+  @Bean
+  PendoConfigCustomizer pendoIdentity() {
+      return builder -> builder
+              .visitorIdResolver(context -> (String) context.transportAttribute("x-user-id"));
+  }
+  ```
+
+  Keep it free of dependencies such as repositories: it is created while
+  Spring is still post-processing beans. Spring AI's HTTP transports set no
+  context extractor, so `transportAttribute(...)` holds a header only when the
+  application replaces the transport bean with one that sets a
+  `contextExtractor`; without that, HTTP callers are recorded as `anonymous`.
+- **An application-declared `PendoMcpServer` bean wins:** the starter creates
+  none and wraps with that one. A tool the application already wrapped is not
+  wrapped twice.
+- **Tools added after startup** with `server.addTool(...)` bypass the starter:
+  inject the `PendoMcpServer` bean and call `server.addTool(pendo.wrap(spec))`.
+
+### Any other server: the adapter
 
 Create one `PendoMcpServer` per process and pass the tool specifications
 through it on the way into the server builder. Wrapping the tools is the
@@ -521,9 +593,9 @@ whole integration.
 import io.pendo.sdk.PendoConfig;
 import io.pendo.sdk.mcp.PendoMcpServer;
 
+// The key and agent id come from PENDO_API_KEY and PENDO_AGENT_ID (PENDO_ENDPOINT for a non-prod stack).
 PendoMcpServer pendo = PendoMcpServer.create(PendoConfig.builder()
-        .apiKey("<app api key>")
-        .agentId("<AA agent id>")
+        // .apiKey("<app api key>").agentId("<AA agent id>")   // or set them here; a value set in code wins
         // .endpoint("<non-prod base URL>")
         // .visitorId("static-visitor").accountId("static-account")
         // .visitorIdResolver(ctx -> (String) ctx.transportAttribute("user-id"))
@@ -537,49 +609,39 @@ McpSyncServer server = McpServer.sync(transportProvider)
         .build();
 ```
 
-**Spring AI** builds the server itself from `List<SyncToolSpecification>`
-beans (the `@McpTool` scanner and any `ToolCallback` beans); wrap those lists
-in a `BeanPostProcessor`:
+With no key or no agent id from either source, `build()` still succeeds: the
+SDK is disabled, logs one warning naming what is missing, and the server runs
+as before. So write no environment lookup and no "skip when unset" branch of
+your own.
 
-```java
-@Component
-public class PendoAnalytics implements BeanPostProcessor, DisposableBean {
-    private final PendoMcpServer pendo = PendoMcpServer.create(PendoConfig.builder()
-            .apiKey(System.getenv("PENDO_API_KEY")).agentId("<AA agent id>").build());
-
-    @Override @SuppressWarnings("unchecked")
-    public Object postProcessAfterInitialization(Object bean, String beanName) {
-        if (bean instanceof List<?> list && !list.isEmpty()
-                && list.stream().allMatch(SyncToolSpecification.class::isInstance)) {
-            return pendo.wrapSync((List<SyncToolSpecification>) list);
-        }
-        return bean;
-    }
-
-    @Override public void destroy() { pendo.close(); }
-}
-```
-
-Rules that matter:
-
-- **Specs are wrapped, not the handler layer.** Unlike the other three SDKs,
+- **Specs are wrapped, not the handler layer.** Unlike the other four SDKs,
   a tool that reaches the server without going through `wrap` / `wrapAll` is
   invisible to Pendo. Tools added at runtime: `server.addTool(pendo.wrap(spec))`;
-  removed: `server.removeTool(name)` then `pendo.forgetTool(name)`. Async
-  servers: `wrapAll(AsyncToolSpecification...)` / `wrapAsync(List)`.
-- **`get_additional_tools` exactly once.** `wrapAll` / `wrapSync` / `wrapAsync`
+  removed: `server.removeTool(name)` then `pendo.forgetTool(name)`. `wrap` and
+  `wrapAll` take sync, async and stateless specifications; the list forms are
+  `wrapSync`, `wrapAsync`, `wrapStatelessSync` and `wrapStatelessAsync`.
+- **`get_additional_tools` exactly once.** `wrapAll` and the list forms
   append the SDK's virtual tool to every batch they wrap, and the MCP server
   rejects a duplicate tool name at build time. Wrap in one batch, or `wrap`
-  each spec and register `pendo.virtualTool()` once. A Spring AI server with
-  both `@McpTool` methods and `ToolCallback` beans has two list beans — that
-  is this case.
+  each spec and register `pendo.virtualTool()` (stateless:
+  `pendo.statelessVirtualTool()`) once.
+- **One `PendoMcpServer` per process.** Each `create` starts its own delivery
+  thread and shutdown hook. Streamable HTTP with per-session servers: wrap
+  every session's tools with the same instance, same agentId.
+
+### Rules for both
+
 - **`user_intent` is required, and the 2.x server validates by default.** A
   host that omits it is refused before the handler runs. That is the intended
   behavior; `.validateToolInputs(false)` on the server builder is the escape
   hatch. The 0.x generation never validates arguments.
-- **One `PendoMcpServer` per process.** Each `create` starts its own delivery
-  thread and shutdown hook. Streamable HTTP with per-session servers: wrap
-  every session's tools with the same instance, same agentId.
+- **Tests that pin the tool list.** Instrumentation changes what the server
+  advertises: every tool gains a required `user_intent` property, and one
+  tool, `get_additional_tools`, is added. Keep a test that asserts the exact
+  catalogue on the uninstrumented server: with the starter,
+  `@SpringBootTest(properties = "pendo.spring-ai.enabled=false")` on that test
+  (`pendo.disabled=true` does not restore the catalogue); with the adapter,
+  build the test's server from the unwrapped specifications.
 - **MCP-only.** Only wrapped tools are instrumented; nothing patches LLM
   client libraries.
 - **stdio transport:** stdout is the JSON-RPC channel. Route all logging to
@@ -594,8 +656,9 @@ Rules that matter:
   configured or resolved; recording visitorId as "anonymous"`).
 - **Conversation id = MCP session id.** No session id (stdio, or a client
   that sends none) → the call is recorded with an empty conversation id plus
-  a one-time warning naming 2026-12-01; `.requireConversationId(true)` skips
-  such calls instead. No fallback id is generated.
+  a one-time deprecation warning (`recorded without a conversationId`);
+  `.requireConversationId(true)` skips such calls instead. No fallback id is
+  generated.
 - **Shutdown:** nothing to register. A JVM hook drains for up to 10 s (SIGTERM
   fine, SIGKILL not). Call `pendo.close()` when the server is disposed without
   exiting the JVM. Knobs: `batchSize` 512, `flushInterval` 2 s,
@@ -614,9 +677,9 @@ Rules that matter:
 2. **Drive real traffic** over the protocol (MCP Inspector, or Claude Code
    with `--mcp-config`), so `tools/list` shows `user_intent` and
    `get_additional_tools` and `tools/call` carries the intent.
-3. **Wire-level assertions:** point `.endpoint(...)` at a local sink and read
-   the `/data/agenticsdk/<key>` requests (the contract repo's
-   `harness/sink.mjs`, or any HTTP server). Expect `tool_request` /
+3. **Wire-level assertions:** point the endpoint at a local sink and read
+   the `/data/agenticsdk/<key>` requests (`contract/harness/sink.mjs` in
+   `pendo-io/pendo-sdk`, or any HTTP server). Expect `tool_request` /
    `tool_response` pairs with `user_intent` stripped from the recorded
    arguments and the catalog attached once per conversation.
 4. **`onDeliveryFailure`** for code-level visibility: the callback receives
@@ -630,35 +693,196 @@ Rules that matter:
 | Check | What to look for |
 |-------|-------------------|
 | `Could not find artifact io.pendo:…` at build time | The `pendo-sdk-release` repository entry is missing from the build that resolves the dependency (Gradle: the module's `repositories {}`, or `settings.gradle(.kts)` when `dependencyResolutionManagement` owns them), a Gradle content filter excludes `io.pendo`, or a proxy blocks `pendo.jfrog.io`. |
-| `IllegalArgumentException: apiKey is required` / `agentId is required` | `PendoConfig.build()` validates its options; both are required, and the key must contain no whitespace. |
+| `pendo: no API key … the SDK is disabled and will send nothing` at startup | The key or the agent id is unset: `PENDO_API_KEY` / `PENDO_AGENT_ID`, the `pendo.api-key` / `pendo.agent-id` properties, or the builder. |
+| `IllegalArgumentException` from `PendoConfig.build()` | A value is present but invalid: whitespace inside the API key, or an endpoint that is not an http(s) URL. |
+| Spring AI application, and `tools/list` shows no `user_intent` | The starter is off: `pendo.spring-ai.enabled=false`, the other generation's starter, Spring AI 1.0.x, or no Spring AI MCP server starter on the classpath. |
 | `pendo: … rejected the API key (HTTP 401 …)` | Wrong Application API key, or the endpoint doesn't match the region. |
 | No delivery warnings and nothing in Pendo | Aggregation lag (about an hour), or `agentId` matches no agent in the app (accepted, then dropped silently). Prove events leave the process with a local sink. |
-| `pendo: tool call "…" has no visitor configured or resolved; recording visitorId as "anonymous"` | Advisory, once per process: events are attributed to visitor `anonymous`. Set `visitorId` or a `visitorIdResolver` to attribute them to real users. |
-| `NoSuchMethodError` / `ClassNotFoundException` in `io.modelcontextprotocol` at startup | Wrong generation module; re-check `dependency:tree` and swap `pendo-sdk-mcp` ↔ `pendo-sdk-mcp-0x`. |
+| `pendo: tool call "…" has no visitor configured or resolved; recording visitorId as "anonymous"` | Advisory, once per process: events are attributed to visitor `anonymous`. Set a visitor id or a `visitorIdResolver` to attribute them to real users. |
+| `NoSuchMethodError` / `ClassNotFoundException` in `io.modelcontextprotocol` at startup | Wrong generation: re-check `dependency:tree` and swap to the artifact with or without `-0x`. |
 | Server build fails on a duplicate tool `get_additional_tools` | Tools were wrapped in two batches; see the "exactly once" rule. |
 | The host's tool calls are rejected as invalid arguments | 2.x validation plus required `user_intent`: fix the host, or `validateToolInputs(false)`. |
-| Empty conversation ids / a one-time warning naming 2026-12-01 | No session id (stdio, or the client sends none); use Streamable HTTP with session ids. |
+| Empty conversation ids / a one-time warning `recorded without a conversationId` | No session id (stdio, or the client sends none); use Streamable HTTP with session ids. |
 | Last events of a run missing | The process exited before the hook drained; `pendo.close()` before exit, or a larger `shutdownTimeout`. |
+
+---
+
+## .NET (`Pendo.AgentAnalytics.Mcp`)
+
+### Prerequisites
+
+- .NET 8 or .NET 10.
+- The official `ModelContextProtocol` NuGet package, 2.3.0 or later.
+- The **Application API Key** and the **Agent ID** (Phase 1).
+
+### Find the MCP server
+
+Look for a `.csproj` with `PackageReference Include="ModelContextProtocol"`
+(or `ModelContextProtocol.AspNetCore`). Hosted servers register with
+`services.AddMcpServer()` and chain `.WithStdioServerTransport()` /
+`.WithHttpTransport()`, `.WithTools<T>()` or `.WithToolsFromAssembly()`; tools
+are `[McpServerToolType]` classes with `[McpServerTool]` methods. Servers built
+by hand call `McpServer.Create(transport, options)` with an `McpServerOptions`.
+Check the resolved version (`dotnet list package | grep ModelContextProtocol`);
+the SDK needs 2.3.0 or later.
+
+### Install
+
+Add the one package (tell the user; don't run the build yourself unless
+asked). It is published to Pendo's JFrog NuGet repository, which allows
+anonymous reads, so the install names that source. Without `--version`,
+`dotnet add package` takes the newest stable release from that source and
+writes the exact version into the project file; leave it pinned there.
+`Pendo.AgentAnalytics` arrives transitively, and the customer's own
+`ModelContextProtocol` package is the one used. A
+pre-release build, when one is offered for trying a fix, needs `--prerelease`
+and its exact version; never pin a customer build to one.
+
+```bash
+dotnet add package Pendo.AgentAnalytics.Mcp --source https://pendo.jfrog.io/artifactory/api/nuget/v3/pendo-sdk-nuget-release/index.json
+```
+
+### Wire it in
+
+**Hosted servers** (`AddMcpServer()`): add one line to the builder chain. It
+covers every tool registered on the builder, before or after the call, and
+flushes queued events when the host stops.
+
+```csharp
+builder.Logging.AddConsole(o => o.LogToStandardErrorThreshold = LogLevel.Trace);
+
+builder.Services
+    .AddMcpServer()
+    .WithStdioServerTransport()
+    .WithToolsFromAssembly()
+    .WithPendoAgentAnalytics();   // reads PENDO_API_KEY / PENDO_AGENT_ID from the environment
+```
+
+Settings come from the environment (`PENDO_API_KEY`, `PENDO_AGENT_ID`, and
+optionally `PENDO_ENDPOINT`, `PENDO_VISITOR_ID`, `PENDO_ACCOUNT_ID`,
+`PENDO_DISABLED`); anything set in code wins:
+
+```csharp
+.WithPendoAgentAnalytics(options =>
+{
+    options.ApiKey = "<app api key>";
+    options.AgentId = "<AA agent id>";
+    // options.Endpoint = "<non-prod base URL>";
+    // options.VisitorId = "static-visitor"; options.AccountId = "static-account";
+    // options.VisitorIdResolver = context => context.Services?.GetService<IHttpContextAccessor>()?.HttpContext?.User.Identity?.Name;
+    // options.CallerAgentResolver = context => context.Services?.GetService<IHttpContextAccessor>()?.HttpContext?.Request.Headers.UserAgent.ToString();
+    // options.Redact = true; options.RequireConversationId = true;
+})
+```
+
+**Servers built with `McpServer.Create(...)`**: create one `PendoMcpServer` and
+apply it to the options before the server is created.
+
+```csharp
+using ModelContextProtocol.Server;
+using Pendo.AgentAnalytics;
+using Pendo.AgentAnalytics.Mcp;
+
+using var pendo = PendoMcpServer.Create(PendoConfig.From(new PendoOptions
+{
+    ApiKey = "<app api key>",
+    AgentId = "<AA agent id>",
+}));
+
+var options = new McpServerOptions { /* server info, tools */ };
+pendo.Apply(options);
+await using var server = McpServer.Create(transport, options);
+```
+
+Rules that matter:
+
+- **Filters, not wrapped tools.** `WithPendoAgentAnalytics()` and `Apply` add
+  request filters, so tools registered on the options or builder are
+  instrumented without wrapping. `Apply` must run before the server is created.
+- **`get_additional_tools` is added for you.** A host tool registered under
+  that name is replaced, with a warning.
+- **`user_intent` is required.** The SDK adds it to every tool's input schema
+  and removes it before the handler runs.
+- **Identity.** `PENDO_VISITOR_ID` / `PENDO_ACCOUNT_ID` are defaults for the
+  hosted one-liner only; `PendoMcpServer.Create` takes the options it is given.
+  `VisitorIdResolver` / `AccountIdResolver` / `CallerAgentResolver` receive a
+  `RequestContext` (`Services`, `Meta`, `CallerAgent`, `ConversationId`,
+  `ToolName`, `Arguments`) once per `tools/call`, before the handler. Null/blank
+  → the static value (the handshake client info for `CallerAgentResolver`); a
+  throw is logged and never affects the call. A blank visitor goes on the wire
+  as `anonymous`, with a one-time warning. Over HTTP, record the request's
+  `User-Agent` as the caller agent: call `services.AddHttpContextAccessor()` in
+  the host, then set `CallerAgentResolver = context => context.Services?.GetService<IHttpContextAccessor>()?.HttpContext?.Request.Headers.UserAgent.ToString()`.
+- **Conversation id = MCP session id.** stdio has none, so one conversation is
+  used for the life of the process. An HTTP transport without a session id gets
+  a fresh conversation for every call; enable sessions to group calls.
+- **Caller agent** is the client name and version from the `initialize`
+  handshake unless `CallerAgentResolver` returns a value; over HTTP, set it to
+  the `User-Agent` as in the Identity rule above.
+- **MCP-only.** Nothing patches LLM client libraries.
+- **stdio transport:** stdout is the JSON-RPC channel. The default console
+  logger writes to stdout, so anything it logs, including the SDK's own startup
+  warning, would corrupt the protocol: keep the `AddConsole(o =>
+  o.LogToStandardErrorThreshold = LogLevel.Trace)` line from the hosted snippet.
+- **Shutdown:** hosted servers flush when the host stops. With
+  `McpServer.Create`, dispose the `PendoMcpServer` (or call `Flush()`) before
+  exit. Knobs on `PendoOptions`: `BatchSize` 512, `FlushInterval` 2 s,
+  `MaxQueueSize` 2048, `ShutdownTimeout` 10 s.
+
+### Verify data is flowing
+
+1. **Quiet on success, loud on failure.** The .NET SDK logs no success line.
+   Warnings go to the host's `ILoggerFactory` (standard error when none is
+   supplied). A missing key or agent id logs one warning at startup
+   (`disabled: no API key … no events will be sent`) and the SDK stays
+   disabled; a failed batch logs a warning naming the endpoint and the number
+   of events discarded.
+2. **Drive real traffic** over the protocol (MCP Inspector, or Claude Code with
+   `--mcp-config`), so `tools/list` shows `user_intent` and
+   `get_additional_tools` and `tools/call` carries the intent.
+3. **Wire-level assertions:** set `PENDO_ENDPOINT` to a local sink
+   (`contract/harness/sink.mjs` in `pendo-io/pendo-sdk`, then
+   `curl <base url>/events`). Expect
+   the prompt, a `tool_request` / `tool_response` pair and the agent response
+   per call, one `conversationId` per session, `callerAgent` set to the
+   client's name and version, and `user_intent` absent from the recorded
+   arguments.
+4. **`OnDeliveryFailure`** on `PendoOptions` for code-level visibility: it
+   receives a `DeliveryFailure` when a batch is dropped.
+5. **Latency expectations:** as for the other SDKs — a 2xx is acceptance, not
+   persistence; budget about an hour before Agent Analytics reflects new data.
+
+### Troubleshooting
+
+| Check | What to look for |
+|-------|-------------------|
+| Restore can't find `Pendo.AgentAnalytics.Mcp` | the JFrog NuGet source was not passed (`--source` on the install, or add it with `dotnet nuget add source`; check `dotnet nuget list source`), or the pinned version is a pre-release and `--prerelease` was not passed. |
+| `disabled: no API key …` warning at startup | `PENDO_API_KEY` / `PENDO_AGENT_ID` unset (or `ApiKey` / `AgentId` in code); the SDK stays disabled. |
+| `ArgumentException` at startup | A present value is invalid: whitespace in the key or agent id, or `PENDO_ENDPOINT` not an `http(s)` URL. |
+| Nothing recorded and no warning | `PENDO_DISABLED` is `true` or `1`, or `Disabled = true` in code. |
+| Delivery warnings naming the endpoint | Wrong key, wrong region endpoint, or no network access from the server. Prove events leave the process with a local sink. |
+| Every event is visitor `anonymous` | Set `PENDO_VISITOR_ID`, `VisitorId`, or a `VisitorIdResolver`. |
+| A new conversation for every call over HTTP | The transport issues no session id; enable sessions. |
+| Last events of a run missing | The process exited before the queue drained; stop the host cleanly, or `Flush()` and dispose the `PendoMcpServer`. |
 
 ---
 
 ## What the instrumentation does (explain to the user)
 
-Across all four SDKs, tool calls are intercepted and recorded:
+Across all five SDKs, tool calls are intercepted and recorded:
 
-- **`tools/list`** — Python, TypeScript and Java inject a required
-  `user_intent` string parameter into every tool schema (Go reads a
-  `userQuery` argument instead), so the AI client explains why it's calling.
-  Tool schemas are otherwise unchanged.
+- **`tools/list`** — every SDK injects a required `user_intent` string
+  parameter into every tool schema, so the AI client explains why it's
+  calling. Tool schemas are otherwise unchanged.
 - **`tools/call`** — times the call, strips the injected parameter before
   the real handler runs, and emits `prompt` / `tool_request` /
   `tool_response` / `agent_response` events. Handler behavior is untouched.
-- Python, TypeScript and Java also advertise a virtual `get_additional_tools`
-  tool that records capability gaps as `missing_capability` events (not
-  currently present in the Go SDK).
+- Every SDK also advertises a virtual `get_additional_tools` tool that
+  records capability gaps as `missing_capability` events.
 
-Where the hook sits differs. Python, TypeScript and Go wrap the
-request-handler layer, so tools registered after the wrapper is constructed
+Where the hook sits differs. Python, TypeScript, Go and .NET wrap the
+request-handler layer (.NET through the server's request filters), so tools registered after the wrapper is constructed
 are instrumented too. Java wraps each tool *specification* (the MCP Java SDK
 has no `tools/list` hook), so a tool must go through `wrap` / `wrapAll` to be
-seen — including tools added later with `addTool`.
+seen — including tools added later with `addTool`. The Spring AI starter does
+that wrapping for the tools Spring AI registers.
