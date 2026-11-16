@@ -7,7 +7,7 @@
     "email": "plugins@pendo.io"
   },
   "homepage": "https://github.com/pendo-io/claude-pendo-plugin",
-  "repository": "https://github.com/pendo-io/pendo-sdk",
+  "repository": "https://github.com/pendo-io/claude-pendo-plugin",
   "license": "MIT",
   "keywords": [
     "pendo",
