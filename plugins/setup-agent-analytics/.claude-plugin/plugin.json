@@ -1,14 +1,19 @@
 {
   "name": "setup-agent-analytics",
   "displayName": "Setup Agent Analytics",
-  "version": "1.1.0",
   "description": "Detect AI agents in your codebase and instrument them with Pendo agent analytics via the best-fit path: Python SDK, TypeScript SDK, client-side trackAgent(), or the Conversations API",
   "author": {
     "name": "Pendo",
     "email": "plugins@pendo.io"
   },
   "homepage": "https://github.com/pendo-io/claude-pendo-plugin",
-  "repository": "https://github.com/pendo-io/claude-pendo-plugin",
+  "repository": "https://github.com/pendo-io/pendo-sdk",
   "license": "MIT",
-  "keywords": ["pendo", "analytics", "ai-agents", "instrumentation"]
+  "keywords": [
+    "pendo",
+    "analytics",
+    "ai-agents",
+    "instrumentation"
+  ],
+  "version": "1.2.0"
 }
